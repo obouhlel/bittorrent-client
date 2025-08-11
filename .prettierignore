@@ -1,0 +1,8 @@
+node_modules
+dist
+.bun
+bun.lock
+*.md
+.git
+coverage
+*.log
