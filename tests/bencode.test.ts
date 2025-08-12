@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import type { BencodeValue } from '../src/bencode';
+import type { BencodeValue } from '../src/models/torrent';
 import { decode, encode } from '../src/bencode';
 
 describe('Bencode Parser', () => {
