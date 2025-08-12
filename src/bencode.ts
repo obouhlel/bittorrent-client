@@ -1,8 +1,5 @@
-export type BencodeValue = number | string | Buffer | BencodeArray | BencodeDict;
-type BencodeArray = BencodeValue[];
-interface BencodeDict {
-  [key: string]: BencodeValue;
-}
+import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile } from './models/torrent';
+import { validateTorrent } from './utils/validator.js';
 
 interface ParseResult<T> {
   value: T;
@@ -213,4 +210,83 @@ export function encode(value: BencodeValue | string): Buffer {
   }
 
   throw new Error(`Cannot encode value of type ${typeof value}`);
+}
+
+function bufferToString(value: BencodeValue | undefined): string | undefined {
+  if (typeof value === 'string') return value;
+  if (Buffer.isBuffer(value)) return value.toString('utf8');
+  return undefined;
+}
+
+export function decodeTorrent(data: Buffer | string): TorrentFile {
+  const decoded = decode(data) as BencodeDict;
+
+  const announceStr = bufferToString(decoded.announce);
+  const info = decoded.info as BencodeDict;
+  const nameStr = bufferToString(info?.name);
+
+  const torrentFile: TorrentFile = {
+    announce: announceStr || '',
+    info: {
+      name: nameStr || '',
+      'piece length': (info?.['piece length'] as number) || 0,
+      pieces: Buffer.isBuffer(info?.pieces) ? info.pieces : Buffer.alloc(0),
+    },
+  };
+
+  if (decoded['announce-list'] && Array.isArray(decoded['announce-list'])) {
+    torrentFile['announce-list'] = decoded['announce-list'].map((tier) =>
+      Array.isArray(tier)
+        ? tier.map((url) => bufferToString(url)).filter((url): url is string => !!url)
+        : []
+    );
+  }
+
+  const createdBy = bufferToString(decoded['created by']);
+  if (createdBy) {
+    torrentFile['created by'] = createdBy;
+  }
+
+  if (decoded['creation date'] && typeof decoded['creation date'] === 'number') {
+    torrentFile['creation date'] = decoded['creation date'];
+  }
+
+  const comment = bufferToString(decoded.comment);
+  if (comment) {
+    torrentFile.comment = comment;
+  }
+
+  const encoding = bufferToString(decoded.encoding);
+  if (encoding) {
+    torrentFile.encoding = encoding;
+  }
+
+  if (info.length && typeof info.length === 'number') {
+    torrentFile.info.length = info.length;
+  }
+
+  if (info.files && Array.isArray(info.files)) {
+    torrentFile.info.files = info.files.map((file) => {
+      const fileDict = file as BencodeDict;
+      const pathArray = Array.isArray(fileDict.path)
+        ? fileDict.path.map((p) => bufferToString(p)).filter((p): p is string => !!p)
+        : [];
+
+      return {
+        length: fileDict.length as number,
+        path: pathArray,
+      };
+    });
+  }
+
+  if (info.private && typeof info.private === 'number') {
+    torrentFile.info.private = info.private;
+  }
+
+  const validation = validateTorrent(torrentFile);
+  if (!validation.valid) {
+    throw new Error(`Invalid torrent file: ${validation.errors.join(', ')}`);
+  }
+
+  return torrentFile;
 }
