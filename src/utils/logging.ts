@@ -4,6 +4,9 @@ function getTimestamp(): string {
 }
 
 export function log(level: 'info' | 'warn' | 'error' | 'success' | 'debug', message: string) {
+  if (Bun.env.NODE_ENV === 'production' && level === 'debug') {
+    return;
+  }
   const colors = {
     info: '\x1b[36m', // Cyan
     warn: '\x1b[33m', // Yellow

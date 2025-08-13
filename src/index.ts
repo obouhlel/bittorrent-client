@@ -1,3 +1,4 @@
+import '@/env';
 import { decodeTorrent } from '@/utils/bencode';
 import { TorrentMetadata } from '@/models/metadata';
 import { HTTPTracker } from '@/trackers/http-tracker';
@@ -5,6 +6,9 @@ import { UDPTracker } from '@/trackers/udp-tracker';
 import type { AnnounceParams, AnnounceResponse } from '@/trackers/http-tracker';
 import type { Peer } from '@/models/torrent';
 import { log } from '@/utils/logging';
+
+const TORRENT_FILE_PATH =
+  Bun.env.TORRENT_FILE_PATH || './torrents/BigBuckBunny_124_archive.torrent';
 
 async function main(path: string) {
   log('info', `BitTorrent client starting...`);
@@ -123,7 +127,7 @@ async function main(path: string) {
 }
 
 log('info', 'BitTorrent client v1.0.0');
-main('./torrents/BigBuckBunny_124_archive.torrent').catch((error) => {
+main(TORRENT_FILE_PATH).catch((error) => {
   log('error', `Fatal error: ${error}`);
   process.exit(1);
 });
