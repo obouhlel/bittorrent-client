@@ -10,6 +10,13 @@ const PROTOCOL_ID = 0x41727101980n; // BitTorrent protocol ID
 const ACTION_CONNECT = 0;
 const ACTION_ANNOUNCE = 1;
 
+enum TrackerEvent {
+  NONE = 0,
+  COMPLETED = 1,
+  STARTED = 2,
+  STOPPED = 3,
+}
+
 export class UDPTracker {
   private socket: dgram.Socket;
   private host: string;
@@ -89,10 +96,10 @@ export class UDPTracker {
     offset += 8;
 
     // Event (4 bytes)
-    let event = 0; // none
-    if (params.event === 'started') event = 2;
-    else if (params.event === 'completed') event = 1;
-    else if (params.event === 'stopped') event = 3;
+    let event = TrackerEvent.NONE;
+    if (params.event === 'started') event = TrackerEvent.STARTED;
+    else if (params.event === 'completed') event = TrackerEvent.COMPLETED;
+    else if (params.event === 'stopped') event = TrackerEvent.STOPPED;
     buffer.writeUInt32BE(event, offset);
     offset += 4;
 
