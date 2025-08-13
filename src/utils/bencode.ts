@@ -1,5 +1,5 @@
-import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile } from './models/torrent';
-import { validateTorrent } from './utils/validator.js';
+import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile } from '../models/torrent.js';
+import { validateTorrent } from './validator.js';
 
 interface ParseResult<T> {
   value: T;
