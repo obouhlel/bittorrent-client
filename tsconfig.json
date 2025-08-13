@@ -1,6 +1,6 @@
 {
   "include": ["src/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "eslint.config.js"],
   "compilerOptions": {
     // Environment setup & latest features
     "lib": ["ESNext"],
@@ -10,11 +10,20 @@
     "jsx": "react-jsx",
     "allowJs": true,
 
+    // Type system
+    "types": ["bun-types"],
+
     // Bundler mode
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+
+    // Path mapping for absolute imports
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
 
     // Best practices
     "strict": true,
