@@ -1,6 +1,6 @@
-import type { TorrentFile, Tracker, Piece } from './torrent.js';
-import { calculateInfoHash } from '../utils/hash.js';
-import { validateTorrent } from '../utils/validator.js';
+import type { TorrentFile, Tracker, Piece } from '@/models/torrent';
+import { calculateInfoHash } from '@/utils/hash';
+import { validateTorrent } from '@/utils/validator';
 
 export class TorrentMetadata {
   private torrent: TorrentFile;

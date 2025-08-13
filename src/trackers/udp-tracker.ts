@@ -1,10 +1,10 @@
-import type { TorrentMetadata } from '../models/metadata';
-import type { Peer } from '../models/torrent';
-import type { AnnounceParams, AnnounceResponse } from './http-tracker';
+import type { TorrentMetadata } from '@/models/metadata';
+import type { Peer } from '@/models/torrent';
+import type { AnnounceParams, AnnounceResponse } from '@/trackers/http-tracker';
 import dgram from 'node:dgram';
 import crypto from 'node:crypto';
 import { URL } from 'node:url';
-import { getClientPeerId } from '../utils/peer-id';
+import { getClientPeerId } from '@/utils/peer-id';
 
 const PROTOCOL_ID = 0x41727101980n; // BitTorrent protocol ID
 const ACTION_CONNECT = 0;

@@ -1,8 +1,8 @@
-import type { TorrentMetadata } from '../models/metadata';
-import type { Peer } from '../models/torrent';
-import type { BencodeDict } from '../models/torrent';
-import { decode } from '../utils/bencode';
-import { getClientPeerId } from '../utils/peer-id';
+import type { TorrentMetadata } from '@/models/metadata';
+import type { Peer } from '@/models/torrent';
+import type { BencodeDict } from '@/models/torrent';
+import { decode } from '@/utils/bencode';
+import { getClientPeerId } from '@/utils/peer-id';
 
 export interface AnnounceParams {
   uploaded: number;
