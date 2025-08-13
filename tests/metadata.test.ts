@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'bun:test';
 import { readFileSync } from 'fs';
-import { TorrentMetadata } from '../src/models/metadata.js';
-import { TorrentFile } from '../src/models/torrent.js';
-import { calculateInfoHash } from '../src/utils/hash.js';
-import { validateTorrent } from '../src/utils/validator.js';
-import { decodeTorrent } from '../src/bencode.js';
+import { TorrentMetadata } from '../src/models/metadata';
+import { TorrentFile } from '../src/models/torrent';
+import { calculateInfoHash } from '../src/utils/hash';
+import { validateTorrent } from '../src/utils/validator';
+import { decodeTorrent } from '../src/utils/bencode';
 
 describe('TorrentMetadata', () => {
   const torrentPath = './torrents/BigBuckBunny_124_archive.torrent';

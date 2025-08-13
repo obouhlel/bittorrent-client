@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { decodeTorrent, encode } from '../src/bencode.js';
+import { decodeTorrent, encode } from '../src/utils/bencode';
 
 describe('decodeTorrent validation integration', () => {
   it('should throw error for invalid torrent - missing announce', () => {
