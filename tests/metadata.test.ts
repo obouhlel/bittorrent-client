@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { readFileSync } from 'fs';
-import { TorrentMetadata } from '../src/models/metadata';
-import { TorrentFile } from '../src/models/torrent';
+import { TorrentMetadata } from '../src/types/metadata';
+import { TorrentFile } from '../src/types';
 import { calculateInfoHash } from '../src/utils/hash';
 import { validateTorrent } from '../src/utils/validator';
 import { decodeTorrent } from '../src/utils/bencode';
