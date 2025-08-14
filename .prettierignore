@@ -6,3 +6,4 @@ bun.lock
 .git
 coverage
 *.log
+.claude
