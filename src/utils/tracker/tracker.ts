@@ -25,7 +25,6 @@ export async function announceToTracker(
   log('info', `Contacting tracker: ${tracker.url}`);
 
   try {
-    // Créer les paramètres complets avec info_hash et peer_id
     const fullAnnounceParams: AnnounceParams = {
       ...announceParams,
       info_hash: Buffer.from(metadata.infoHash, 'hex'),
@@ -37,11 +36,9 @@ export async function announceToTracker(
     let response: AnnounceResponse;
 
     if (tracker.protocol === 'http' || tracker.protocol === 'https') {
-      log('debug', `Protocol: HTTP${tracker.protocol === 'https' ? 'S' : ''}`);
       const httpTracker = new HTTPTracker(tracker.url, metadata);
       response = await httpTracker.announce(fullAnnounceParams);
     } else if (tracker.protocol === 'udp') {
-      log('debug', 'Protocol: UDP');
       const udpTracker = new UDPTracker(tracker.url, metadata);
       response = await udpTracker.announce(fullAnnounceParams);
       udpTracker.close();
@@ -50,10 +47,9 @@ export async function announceToTracker(
       return null;
     }
 
-    log('pass', `Tracker responded successfully`);
     log(
-      'info',
-      `Peers: ${response.peers.length} | Seeders: ${response.complete} | Leechers: ${response.incomplete}`
+      'pass',
+      `Tracker responded successfully ${tracker.url} ! Peers: ${response.peers.length} | Seeders: ${response.complete} | Leechers: ${response.incomplete}`
     );
 
     return response;

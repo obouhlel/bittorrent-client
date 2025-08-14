@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import { URL } from 'node:url';
 import { getClientPeerId } from '~/utils/protocol/peer-id';
 
-const PROTOCOL_ID = 0x41727101980n; // BitTorrent protocol ID
+const PROTOCOL_ID = 0x41727101980n;
 const ACTION_CONNECT = 0;
 const ACTION_ANNOUNCE = 1;
 
@@ -39,15 +39,12 @@ export class UDPTracker {
     const buffer = Buffer.allocUnsafe(16);
     let offset = 0;
 
-    // Protocol ID (8 bytes)
     buffer.writeBigUInt64BE(PROTOCOL_ID, offset);
     offset += 8;
 
-    // Action (4 bytes) - Connect = 0
     buffer.writeUInt32BE(ACTION_CONNECT, offset);
     offset += 4;
 
-    // Transaction ID (4 bytes) - random
     const transactionId = crypto.randomInt(0, 0xffffffff);
     buffer.writeUInt32BE(transactionId, offset);
 
@@ -62,40 +59,31 @@ export class UDPTracker {
     const buffer = Buffer.allocUnsafe(98);
     let offset = 0;
 
-    // Connection ID (8 bytes)
     this.connectionId.copy(buffer, offset);
     offset += 8;
 
-    // Action (4 bytes) - Announce = 1
     buffer.writeUInt32BE(ACTION_ANNOUNCE, offset);
     offset += 4;
 
-    // Transaction ID (4 bytes)
     buffer.writeUInt32BE(transactionId, offset);
     offset += 4;
 
-    // Info hash (20 bytes)
     const infoHashBuffer = Buffer.from(this.torrentInfo.infoHash, 'hex');
     infoHashBuffer.copy(buffer, offset);
     offset += 20;
 
-    // Peer ID (20 bytes)
     this.peerId.copy(buffer, offset);
     offset += 20;
 
-    // Downloaded (8 bytes)
     buffer.writeBigUInt64BE(BigInt(params.downloaded), offset);
     offset += 8;
 
-    // Left (8 bytes)
     buffer.writeBigUInt64BE(BigInt(params.left), offset);
     offset += 8;
 
-    // Uploaded (8 bytes)
     buffer.writeBigUInt64BE(BigInt(params.uploaded), offset);
     offset += 8;
 
-    // Event (4 bytes)
     let event = TrackerEvent.NONE;
     if (params.event === 'started') event = TrackerEvent.STARTED;
     else if (params.event === 'completed') event = TrackerEvent.COMPLETED;
@@ -103,20 +91,16 @@ export class UDPTracker {
     buffer.writeUInt32BE(event, offset);
     offset += 4;
 
-    // IP address (4 bytes) - 0 means use sender's IP
     buffer.writeUInt32BE(0, offset);
     offset += 4;
 
-    // Key (4 bytes) - random
     const key = crypto.randomInt(0, 0xffffffff);
     buffer.writeUInt32BE(key, offset);
     offset += 4;
 
-    // Num want (4 bytes)
     buffer.writeInt32BE(params.numwant ?? -1, offset);
     offset += 4;
 
-    // Port (2 bytes)
     buffer.writeUInt16BE(params.port ?? 6881, offset);
 
     return buffer;
@@ -132,7 +116,6 @@ export class UDPTracker {
       throw new Error(`Invalid connect response action: ${action}`);
     }
 
-    // Extract connection ID (8 bytes starting at offset 8)
     return buffer.subarray(8, 16);
   }
 
@@ -148,7 +131,6 @@ export class UDPTracker {
 
     const peers: Peer[] = [];
 
-    // Peers start at offset 20, each peer is 6 bytes (4 IP + 2 port)
     for (let i = 20; i < buffer.length; i += 6) {
       if (i + 5 < buffer.length) {
         const ipBytes = buffer.subarray(i, i + 4);
@@ -215,7 +197,6 @@ export class UDPTracker {
         throw new Error('Invalid announce response');
       }
 
-      // Check for error response
       const action = response.readUInt32BE(0);
       const responseTransactionId = response.readUInt32BE(4);
 
@@ -224,7 +205,6 @@ export class UDPTracker {
       }
 
       if (action === 3) {
-        // Error
         const errorMessage =
           response.length > 8 ? response.subarray(8).toString() : 'Unknown error';
         throw new Error(`Tracker error: ${errorMessage}`);

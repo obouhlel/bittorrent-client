@@ -24,7 +24,6 @@ function findActivePeerWithPiece(
 function requestPieceFromPeer(connection: PeerConnection, pieceIndex: number): boolean {
   if (!connection.messageHandler.chokedStatus) {
     connection.requestPiece(pieceIndex);
-    log('debug', `Requested piece ${pieceIndex} from ${connection.peerAddress}`);
     return true;
   }
   return false;

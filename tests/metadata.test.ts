@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { readFileSync } from 'fs';
-import { TorrentMetadata } from '../src/models/metadata';
+import { TorrentMetadata } from '../src/models/torrents/metadata';
 import { TorrentFile } from '../src/types';
 import { calculateInfoHash } from '../src/utils/torrent/hash';
 import { validateTorrent } from '../src/utils/torrent/validator';

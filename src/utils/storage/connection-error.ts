@@ -15,7 +15,6 @@ export function categorizeConnectionError(
 
   switch (errorCode) {
     case 'ECONNREFUSED':
-      log('debug', `${peerId}: Connection refused (peer offline or port closed)`);
       return 'retry'; // Peut être temporaire
 
     case 'ETIMEDOUT':
@@ -23,19 +22,15 @@ export function categorizeConnectionError(
       return 'retry'; // Peut être temporaire
 
     case 'ECONNRESET':
-      log('debug', `${peerId}: Connection reset (peer disconnected)`);
       return 'retry'; // Peut être temporaire
 
     case 'EHOSTUNREACH':
-      log('debug', `${peerId}: Host unreachable (routing issue)`);
       return 'blacklist'; // Problème réseau persistant
 
     case 'ENETUNREACH':
-      log('debug', `${peerId}: Network unreachable (no route)`);
       return 'blacklist'; // Problème réseau persistant
 
     case 'ENOTFOUND':
-      log('debug', `${peerId}: Host not found (DNS issue)`);
       return 'blacklist'; // Adresse invalide
 
     case 'EADDRINUSE':
@@ -48,7 +43,6 @@ export function categorizeConnectionError(
       return 'ignore'; // Problème système local
 
     default:
-      log('debug', `${peerId}: Unknown connection error (${errorCode}): ${error.message}`);
       return 'retry'; // Par défaut, on retry
   }
 }

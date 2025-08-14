@@ -6,8 +6,6 @@ import { TorrentMetadata as TorrentMetadataClass } from '~/models/torrents/metad
 import { decodeTorrent } from '~/utils/torrent/bencode';
 import { TrackerManager } from '~/models/trackers/tracker-manager';
 import {
-  DEFAULT_PORT,
-  DEFAULT_NUMWANT,
   CLIENT_VERSION,
   DEFAULT_TORRENT_FILE_PATH,
   BYTES_TO_MB,
@@ -40,16 +38,6 @@ function logTorrentInfo(metadata: TorrentMetadata): void {
 
 function logTrackersInfo(trackers: { url: string; protocol: string }[]): void {
   log('info', `Announce list contains ${trackers.length} tracker(s)`);
-
-  const trackerCounts = {
-    udp: trackers.filter((t) => t.protocol === 'udp').length,
-    http: trackers.filter((t) => t.protocol === 'http').length,
-    https: trackers.filter((t) => t.protocol === 'https').length,
-  };
-
-  if (trackerCounts.udp > 0) log('debug', `UDP trackers: ${trackerCounts.udp}`);
-  if (trackerCounts.http > 0) log('debug', `HTTP trackers: ${trackerCounts.http}`);
-  if (trackerCounts.https > 0) log('debug', `HTTPS trackers: ${trackerCounts.https}`);
 }
 
 /**
@@ -84,9 +72,7 @@ function setupShutdownHandlers(downloadManager: DownloadManager): void {
  */
 async function startDownload(downloadManager: DownloadManager): Promise<void> {
   try {
-    log('info', 'Starting download...');
     await downloadManager.startDownload();
-    log('pass', 'Download completed successfully!');
   } catch (error) {
     log('fail', `Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     process.exit(1);
@@ -104,8 +90,6 @@ async function discoverPeers(
   logTrackersInfo(trackers);
 
   log('info', 'Starting intelligent tracker management...');
-  log('debug', `Port: ${DEFAULT_PORT}`);
-  log('debug', `Requesting ${DEFAULT_NUMWANT} peers per tracker`);
 
   // Créer le gestionnaire de trackers intelligent
   const trackerManager = new TrackerManager(metadata, downloadManager);
@@ -158,12 +142,6 @@ async function main(torrentPath: string): Promise<void> {
   // Create and initialize download manager
   const downloadManager = createDownloadManager(metadata);
   await downloadManager.initialize();
-
-  // Log de configuration réseau pour debug
-  log('debug', 'Network configuration:');
-  log('debug', `- Max connections: ${downloadManager.currentStats}`);
-  log('debug', `- Connect timeout: 15s`);
-  log('debug', `- Retry attempts: 2`);
 
   // Setup graceful shutdown
   setupShutdownHandlers(downloadManager);

@@ -57,8 +57,8 @@ export class DownloadManager {
   private lastETA = 0;
   private stuckPiecesTimer?: NodeJS.Timeout;
   private etaIncreaseCount = 0;
-  private trackerManager?: ITrackerManager; // TrackerManager will be set from outside
-  private triggerImmediateConnection = false; // Flag pour connection immédiate aux nouveaux peers
+  private trackerManager?: ITrackerManager;
+  private triggerImmediateConnection = false;
 
   constructor(metadata: TorrentMetadata, config: Partial<DownloadConfig> = {}) {
     this.metadata = metadata;
@@ -84,7 +84,6 @@ export class DownloadManager {
     log('info', 'Initializing download manager...');
     await this.fileManager.initialize();
 
-    // Charger l'état existant si disponible
     await this.loadExistingProgress();
 
     log('info', `Download manager ready - Target: ${this.metadata.name}`);
@@ -112,13 +111,12 @@ export class DownloadManager {
       `Added ${newPeers.length} new peers (${this.availablePeers.length} total, ${this.blacklistedPeers.size} blacklisted)`
     );
 
-    // Si le téléchargement est déjà en cours et qu'on a de nouveaux peers, essayer de se connecter immédiatement
     if (this.isRunning && newPeers.length > 0) {
       log(
         'info',
         `Download is running - attempting immediate connection to ${newPeers.length} new peers`
       );
-      // Trigger immediate connection attempt dans la boucle principale
+
       this.triggerImmediateConnection = true;
     }
   }
@@ -134,27 +132,20 @@ export class DownloadManager {
 
     log('info', 'Starting download...');
 
-    // Démarrer le monitoring de progression avec détection de blocage
     this.startProgressMonitoring();
 
-    // Démarrer la surveillance des pieces bloquées
     this.startStuckPiecesMonitoring();
 
-    // Démarrer les connexions initiales
     await this.maintainConnections();
 
-    // Boucle principale de téléchargement
     while (this.isRunning && !this.isDownloadComplete()) {
       await this.maintainConnections();
 
-      // Connection immédiate si de nouveaux peers ont été ajoutés
       if (this.triggerImmediateConnection) {
         this.triggerImmediateConnection = false;
-        log('debug', 'Triggering immediate connection attempt to new peers');
-        await this.maintainConnections(); // Connection immédiate
+        await this.maintainConnections();
       }
 
-      // Log périodique des connexions actives
       if (this.connections.size === 0 && this.availablePeers.length > 0) {
         log(
           'warn',
@@ -171,10 +162,8 @@ export class DownloadManager {
   }
 
   private async maintainConnections(): Promise<void> {
-    // Nettoyer les connexions fermées
     this.cleanupConnections();
 
-    // Ajouter de nouvelles connexions si nécessaire
     const activeConnections = this.connections.size;
     const connectionsNeeded = Math.min(
       this.config.maxConnections - activeConnections,
@@ -183,11 +172,9 @@ export class DownloadManager {
 
     if (connectionsNeeded > 0) {
       const peersToConnect = this.availablePeers.splice(0, connectionsNeeded);
-      log('debug', `Attempting to connect to ${peersToConnect.length} new peers`);
       await Promise.allSettled(peersToConnect.map((peer) => this.connectToPeer(peer)));
     }
 
-    // Si on a très peu de connexions actives, réessayer des peers qui ont échoué
     if (shouldRetryPeers(activeConnections) && this.failedPeers.size > 0) {
       const peersToRetry = getPeersToRetry(this.failedPeers);
 
@@ -199,10 +186,6 @@ export class DownloadManager {
           this.availablePeers.push({ ip: parts[0], port: parseInt(parts[1]) });
         }
       }
-
-      if (peersToRetry.length > 0) {
-        log('debug', `Retrying ${peersToRetry.length} previously failed peers`);
-      }
     }
   }
 
@@ -210,8 +193,6 @@ export class DownloadManager {
     const peerId = `${peer.ip}:${peer.port}`;
 
     try {
-      log('debug', `Connecting to peer ${peerId}`);
-
       const connection = new PeerConnection(
         peer,
         this.metadata.infoHash,
@@ -219,10 +200,8 @@ export class DownloadManager {
         this.pieceManager
       );
 
-      // Configurer les callbacks pour ce peer
       this.setupPeerCallbacks(connection);
 
-      // Connecter avec timeout
       const connectPromise = connection.connect();
       const timeoutPromise = sleep(this.config.connectTimeout).then(() => {
         throw new Error('Connection timeout');
@@ -239,10 +218,6 @@ export class DownloadManager {
   }
 
   private setupPeerCallbacks(connection: PeerConnection): void {
-    // Le PeerConnection gère déjà les callbacks via MessageHandler
-    // On peut ajouter des callbacks spécifiques au DownloadManager ici
-
-    // Hook dans le callback onPiece pour tracker les bytes téléchargés
     const originalOnPiece = connection.messageHandler.onPiece;
     connection.messageHandler.onPiece = (index: number, offset: number, data: Buffer) => {
       this.bytesDownloaded += data.length;
@@ -250,11 +225,6 @@ export class DownloadManager {
         originalOnPiece(index, offset, data);
       }
     };
-
-    // Log quand une connexion est établie avec succès
-    if (connection.isConnected) {
-      log('debug', `Peer ${connection.peerAddress} successfully connected and configured`);
-    }
   }
 
   private async handlePeerConnectionError(
@@ -265,8 +235,6 @@ export class DownloadManager {
     const currentAttempts = this.retryCount.get(peerId) || 0;
     const newAttempts = currentAttempts + 1;
 
-    log('debug', `Failed to connect to ${peerId} (attempt ${newAttempts}): ${error.message}`);
-
     const action = categorizeConnectionError(error, peerId);
     const errorCode = error.code || error.errno;
 
@@ -275,11 +243,9 @@ export class DownloadManager {
         this.blacklistedPeers.add(peerId);
         this.failedPeers.delete(peerId);
         this.retryCount.delete(peerId);
-        log('debug', `Peer ${peerId} blacklisted due to ${errorCode}`);
         break;
 
       case 'ignore':
-        // Erreur système locale, on ignore ce peer temporairement
         this.failedPeers.add(peerId);
         break;
 
@@ -300,12 +266,10 @@ export class DownloadManager {
             if (retryTime && Date.now() >= retryTime) {
               this.retryDelays.delete(peerId);
               this.availablePeers.push(peer);
-              log('debug', `Retrying peer ${peerId} after delay`);
             }
           }, delay);
         } else {
           this.failedPeers.add(peerId);
-          log('debug', `Peer ${peerId} failed permanently after ${newAttempts} attempts`);
         }
         break;
     }
@@ -322,25 +286,22 @@ export class DownloadManager {
     this.progressTimer = setInterval(() => {
       const stats = this.getDownloadStats();
 
-      // Détecter si le téléchargement stagne
       if (this.bytesDownloaded === lastBytesDownloaded && stats.percentage < 100) {
         stagnantCount++;
 
         if (stagnantCount >= 5) {
-          // 5 intervalles de 2 secondes = 10 secondes stuck
           log(
             'warn',
             `Download stuck for ${stagnantCount * 2} seconds, resetting all peers and retrying trackers...`
           );
           this.handleStuckDownload();
-          stagnantCount = 0; // Reset counter après reset
+          stagnantCount = 0;
         }
       } else {
-        stagnantCount = 0; // Reset si progrès détecté
+        stagnantCount = 0;
         lastBytesDownloaded = this.bytesDownloaded;
       }
 
-      // Compter les pieces disponibles chez les peers connectés
       const totalAvailablePieces = this.pieceManager.getTotalAvailablePieces();
       const avgPeerCompletion =
         this.connections.size > 0
@@ -349,7 +310,6 @@ export class DownloadManager {
 
       if (this.isRunning) logProgressUpdate(stats, avgPeerCompletion);
 
-      // Détecter si l'ETA augmente
       if (this.lastETA > 0 && stats.eta > this.lastETA * ETA_INCREASE_THRESHOLD) {
         this.etaIncreaseCount++;
         if (this.etaIncreaseCount >= ETA_INCREASE_COUNT_THRESHOLD) {
@@ -378,7 +338,6 @@ export class DownloadManager {
   private handleSlowProgress(): void {
     analyzeSlowProgress(this.pieceManager, this.connections);
 
-    // Si peu de connexions actives, forcer retry des failed peers
     if (this.connections.size < MIN_CONNECTIONS_FOR_FORCE_RETRY) {
       log('info', 'Low connection count, forcing peer retry...');
       this.forceRetryFailedPeers();
@@ -394,13 +353,10 @@ export class DownloadManager {
   private checkForStuckPieces(): void {
     checkForStuckPieces(this.pieceManager, this.connections);
 
-    // Nettoyer aussi les pièces bloquées en statut "downloading"
     this.pieceManager.cleanupStuckDownloadingPieces();
   }
 
   private handleStuckDownload(): void {
-    // Cette méthode sera appelée par le TrackerManager via un callback
-    // Le TrackerManager va reset les peers et redemander aux trackers
     log('info', 'Triggering stuck download recovery via tracker manager...');
 
     if (this.trackerManager) {
@@ -420,7 +376,7 @@ export class DownloadManager {
       completedPieces: pieceStats.completed,
       activePeers: this.connections.size,
       downloadSpeed,
-      uploadSpeed: 0, // TODO: implémenter upload tracking
+      uploadSpeed: 0,
       eta,
       percentage: pieceStats.percentage,
     };
@@ -441,7 +397,6 @@ export class DownloadManager {
   private async finishDownload(): Promise<void> {
     log('info', 'Download complete! Finalizing...');
 
-    // Double vérification que toutes les pièces sont vraiment complètes
     const stats = this.pieceManager.getCompletionStats();
     if (stats.completed !== stats.total) {
       log(
@@ -449,16 +404,14 @@ export class DownloadManager {
         `Download not actually complete: ${stats.completed}/${stats.total} pieces completed`
       );
 
-      // Identifier et relancer les pièces manquantes
       this.identifyAndRelaunchMissingPieces();
 
       log('info', 'Continuing download to fetch missing pieces...');
-      return; // Retourner à la boucle de téléchargement
+      return;
     }
 
     log('info', `All ${stats.total} pieces confirmed complete, proceeding with reconstruction`);
 
-    // Arrêter le monitoring
     if (this.progressTimer) {
       clearInterval(this.progressTimer);
     }
@@ -467,13 +420,11 @@ export class DownloadManager {
       clearInterval(this.stuckPiecesTimer);
     }
 
-    // Fermer toutes les connexions
     for (const connection of this.connections.values()) {
       connection.close();
     }
     this.connections.clear();
 
-    // Reconstruire les fichiers
     await this.pieceManager.finishDownload();
 
     this.isRunning = false;
@@ -510,13 +461,11 @@ export class DownloadManager {
   resetAllPeers(): void {
     log('warn', 'Resetting all peer connections and clearing peer lists');
 
-    // Fermer toutes les connexions existantes
     for (const connection of this.connections.values()) {
       connection.close();
     }
     this.connections.clear();
 
-    // Vider les listes de peers
     this.availablePeers = [];
     this.failedPeers.clear();
     this.blacklistedPeers.clear();
@@ -530,7 +479,6 @@ export class DownloadManager {
     const missingPieces: number[] = [];
     const stats = this.pieceManager.getCompletionStats();
 
-    // Identifier les pièces manquantes
     for (let i = 0; i < stats.total; i++) {
       const piece = this.pieceManager.getPiece(i);
       if (!piece || !piece.completed) {
@@ -543,19 +491,14 @@ export class DownloadManager {
       `Found ${missingPieces.length} missing pieces: ${missingPieces.slice(0, 20).join(', ')}${missingPieces.length > 20 ? '...' : ''}`
     );
 
-    // Réinitialiser les pièces manquantes pour les relancer
     for (const pieceIndex of missingPieces) {
       this.pieceManager.resetPieceDownloadStatus(pieceIndex);
-      log('debug', `Reset piece ${pieceIndex} for redownload`);
 
-      // Essayer de demander cette pièce immédiatement à tous les peers connectés
       this.requestPieceFromAllPeers(pieceIndex);
     }
 
-    // Force retry de tous les peers pour avoir plus de chances
     this.forceRetryFailedPeers();
 
-    // Forcer une connexion immédiate pour essayer de télécharger les pièces manquantes
     this.triggerImmediateConnection = true;
 
     log('info', 'Missing pieces reset and immediate reconnection triggered');
@@ -566,12 +509,10 @@ export class DownloadManager {
 
     for (const connection of this.connections.values()) {
       if (connection.isConnected && !connection.messageHandler.chokedStatus) {
-        // Vérifier si ce peer a la pièce
         const peerPieceCount = connection.peerPieceCount;
         if (peerPieceCount > pieceIndex) {
           connection.requestPiece(pieceIndex);
           requestsCount++;
-          log('debug', `Requested missing piece ${pieceIndex} from ${connection.peerAddress}`);
         }
       }
     }

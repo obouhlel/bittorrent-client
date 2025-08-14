@@ -95,10 +95,6 @@ export function cleanupDisconnectedPeers(connections: Map<string, PeerConnection
 
   toRemove.forEach((peerId) => connections.delete(peerId));
 
-  if (connections.size > 0) {
-    log('debug', `Active connections: ${connections.size}`);
-  }
-
   return toRemove;
 }
 

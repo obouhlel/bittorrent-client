@@ -41,11 +41,9 @@ export class FileManager {
   }
 
   async initialize(): Promise<void> {
-    // Créer les dossiers nécessaires
     await fs.mkdir(this.downloadDir, { recursive: true });
     await fs.mkdir(this.piecesDir, { recursive: true });
 
-    // Créer les dossiers pour les fichiers multi-fichiers
     for (const file of this.files) {
       const dir = path.dirname(file.path);
       await fs.mkdir(dir, { recursive: true });
@@ -56,17 +54,14 @@ export class FileManager {
 
   async savePiece(pieceIndex: number, pieceData: Buffer): Promise<boolean> {
     try {
-      // Vérifier le hash de la piece
       if (!(await this.verifyPieceHash(pieceIndex, pieceData))) {
         log('fail', `Piece ${pieceIndex} hash verification failed`);
         return false;
       }
 
-      // Sauvegarder la piece dans le dossier temporaire
       const piecePath = path.join(this.piecesDir, `piece_${pieceIndex}.dat`);
       await fs.writeFile(piecePath, pieceData);
 
-      log('debug', `Piece ${pieceIndex} saved to ${piecePath}`);
       return true;
     } catch (error) {
       log('fail', `Failed to save piece ${pieceIndex}: ${error}`);
@@ -112,14 +107,12 @@ export class FileManager {
     const totalPieces = this.metadata.pieceCount;
     const pieceLength = this.metadata.pieceLength;
 
-    // Vérifier que toutes les pieces sont disponibles
     for (let i = 0; i < totalPieces; i++) {
       if (!(await this.isPieceComplete(i))) {
         throw new Error(`Piece ${i} is missing, cannot reconstruct files`);
       }
     }
 
-    // Reconstruire chaque fichier
     for (const file of this.files) {
       await this.reconstructFile(file, pieceLength);
     }
@@ -139,16 +132,13 @@ export class FileManager {
         const pieceIndex = Math.floor(fileOffset / pieceLength);
         const pieceOffset = fileOffset % pieceLength;
 
-        // Lire la piece
         const piecePath = path.join(this.piecesDir, `piece_${pieceIndex}.dat`);
         const pieceData = await fs.readFile(piecePath);
 
-        // Calculer combien de bytes écrire depuis cette piece
         const remainingInFile = file.length - bytesWritten;
         const remainingInPiece = pieceData.length - pieceOffset;
         const bytesToWrite = Math.min(remainingInFile, remainingInPiece);
 
-        // Écrire les données dans le fichier
         const dataToWrite = pieceData.subarray(pieceOffset, pieceOffset + bytesToWrite);
         await fileHandle.write(dataToWrite, 0, bytesToWrite, bytesWritten);
 

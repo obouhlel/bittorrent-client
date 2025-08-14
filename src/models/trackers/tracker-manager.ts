@@ -53,7 +53,6 @@ export class TrackerManager {
    * Annoncer à plusieurs trackers intelligemment (par batches de 10)
    */
   async announceToMultipleTrackers(): Promise<Peer[]> {
-    // Traiter les trackers par batches de 10 pour éviter la saturation réseau
     const batchSize = 10;
     const allPeers: Peer[] = [];
     let totalSuccessCount = 0;
@@ -62,12 +61,10 @@ export class TrackerManager {
 
     for (let i = 0; i < this.trackers.length; i += batchSize) {
       const batch = this.trackers.slice(i, i + batchSize);
-      log('info', `Announcing to batch ${Math.floor(i / batchSize) + 1}: ${batch.length} trackers`);
 
       const batchPeers = await this.announceToBatch(batch);
       allPeers.push(...batchPeers);
 
-      // Log immédiat des peers trouvés dans ce batch
       if (batchPeers.length > 0) {
         log(
           'pass',
@@ -79,7 +76,6 @@ export class TrackerManager {
         totalSuccessCount += batch.filter((t) => t.consecutiveFailures === 0).length;
       }
 
-      // Petit délai entre les batches pour éviter de surcharger
       if (i + batchSize < this.trackers.length) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
@@ -101,13 +97,10 @@ export class TrackerManager {
       return [];
     }
 
-    log('debug', `Announcing to batch of ${selectedTrackers.length} trackers`);
-
     const announceParams = createAnnounceParams(this.metadata);
     const allPeers: Peer[] = [];
     let successCount = 0;
 
-    // Annoncer à tous les trackers sélectionnés en parallèle
     const results = await Promise.allSettled(
       selectedTrackers.map(async (trackerInfo) => {
         const startTime = Date.now();
@@ -124,25 +117,20 @@ export class TrackerManager {
       })
     );
 
-    // Traiter les résultats
     results.forEach((result) => {
       if (result.status === 'fulfilled' && result.value.response) {
         const { response } = result.value;
         successCount++;
 
-        // Filtrer les peers uniques
         const newPeers = response.peers.filter(
           (peer: Peer) => !allPeers.some((p) => p.ip === peer.ip && p.port === peer.port)
         );
 
         allPeers.push(...newPeers);
         this.downloadManager.addPeers(newPeers);
-
-        log('debug', `Added ${newPeers.length} unique peers from tracker`);
       }
     });
 
-    // Mise à jour de l'index de rotation
     this.currentTrackerIndex =
       (this.currentTrackerIndex + selectedTrackers.length) % this.trackers.length;
 
@@ -160,20 +148,13 @@ export class TrackerManager {
     responseTime: number
   ): void {
     if (response) {
-      // Succès
       trackerInfo.lastSuccess = Date.now();
       trackerInfo.consecutiveFailures = 0;
       trackerInfo.totalPeers = response.peers?.length || 0;
       trackerInfo.seeders = response.complete || 0;
       trackerInfo.leechers = response.incomplete || 0;
       trackerInfo.responseTime = responseTime;
-
-      log(
-        'debug',
-        `Tracker ${trackerInfo.url}: ${trackerInfo.totalPeers} peers, ${trackerInfo.seeders} seeders (${responseTime}ms)`
-      );
     } else {
-      // Échec
       trackerInfo.lastFailure = Date.now();
       trackerInfo.consecutiveFailures++;
 
@@ -187,7 +168,6 @@ export class TrackerManager {
    * Obtenir seulement les bons trackers (ceux qui fonctionnent)
    */
   async announceTrackers(): Promise<Peer[]> {
-    // Utiliser seulement les trackers qui ont fonctionné
     const goodTrackers = this.trackers.filter(
       (t) => t.consecutiveFailures === 0 && t.totalPeers > 0
     );
@@ -201,9 +181,7 @@ export class TrackerManager {
 
     const announceParams = createAnnounceParams(this.metadata);
     const allPeers: Peer[] = [];
-    let successCount = 0;
 
-    // Annoncer aux bons trackers en parallèle
     const results = await Promise.allSettled(
       goodTrackers.map(async (trackerInfo) => {
         const startTime = Date.now();
@@ -220,11 +198,9 @@ export class TrackerManager {
       })
     );
 
-    // Traiter les résultats
     results.forEach((result) => {
       if (result.status === 'fulfilled' && result.value.response) {
         const { response } = result.value;
-        successCount++;
 
         const newPeers = response.peers.filter(
           (peer: Peer) => !allPeers.some((p) => p.ip === peer.ip && p.port === peer.port)
@@ -232,15 +208,9 @@ export class TrackerManager {
 
         allPeers.push(...newPeers);
         this.downloadManager.addPeers(newPeers);
-
-        log('debug', `Added ${newPeers.length} unique peers from good tracker`);
       }
     });
 
-    log(
-      'info',
-      `Good trackers round complete: ${successCount}/${goodTrackers.length} successful, ${allPeers.length} new peers`
-    );
     return allPeers;
   }
 
@@ -255,18 +225,15 @@ export class TrackerManager {
         ? TRACKER_RETRY_INTERVAL_HEALTHY
         : TRACKER_RETRY_INTERVAL_STRUGGLING;
 
-      // Annoncer seulement si on a besoin de plus de peers
       if (currentPeers < MIN_PEERS_FOR_HEALTHY_SWARM) {
         await this.announceTrackers();
       }
 
-      // Programmer la prochaine vérification
       if (this.downloadManager.getIsEnd() !== true) {
         this.discoveryTimer = setTimeout(checkAndAnnounce, interval);
       }
     };
 
-    // Première annonce immédiate
     checkAndAnnounce();
 
     log(
@@ -281,17 +248,14 @@ export class TrackerManager {
   async resetAndRetryAllTrackers(): Promise<Peer[]> {
     log('warn', 'Download stuck, resetting all peers and retrying all trackers...');
 
-    // Reset des connexions peers dans le download manager
     this.downloadManager.resetAllPeers();
 
-    // Reset des stats des trackers pour forcer un nouveau test
     this.trackers.forEach((tracker) => {
       tracker.consecutiveFailures = 0;
       tracker.lastFailure = undefined;
       tracker.totalPeers = 0;
     });
 
-    // Contacter tous les trackers à nouveau
     return this.announceToMultipleTrackers();
   }
 
