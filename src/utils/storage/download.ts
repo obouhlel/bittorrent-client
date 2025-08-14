@@ -1,7 +1,6 @@
 import { log } from '@/utils/system/logging';
 import type { Peer, DownloadStats } from '@/types';
-import type PeerConnection from '@/models/connection';
-import { PieceManager } from '@/models/piece-manager';
+import type PeerConnection from '@/models/peer/connection';
 import {
   BYTES_TO_KB,
   SECONDS_TO_MS,
@@ -77,29 +76,6 @@ export function retryFailedPeers(
   }
 
   return peersToRetry.length;
-}
-
-export function findActivePeerWithPiece(
-  pieceIndex: number,
-  pieceManager: PieceManager,
-  connections: Map<string, PeerConnection>
-): PeerConnection | null {
-  const peersWithPiece = pieceManager.getPeersWithPiece(pieceIndex);
-  for (const connection of connections.values()) {
-    if (peersWithPiece.includes(connection.peerAddress) && connection.isConnected) {
-      return connection;
-    }
-  }
-  return null;
-}
-
-export function requestPieceFromPeer(connection: PeerConnection, pieceIndex: number): boolean {
-  if (!connection.messageHandler.chokedStatus) {
-    connection.requestPiece(pieceIndex);
-    log('debug', `Requested piece ${pieceIndex} from ${connection.peerAddress}`);
-    return true;
-  }
-  return false;
 }
 
 export function cleanupDisconnectedPeers(connections: Map<string, PeerConnection>): string[] {

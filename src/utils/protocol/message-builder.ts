@@ -36,19 +36,3 @@ export function buildRequest(index: number, begin: number, length: number): Buff
   payload.writeUInt32BE(length, 8);
   return buildMessage(MessageType.REQUEST, payload);
 }
-
-export function buildPiece(index: number, begin: number, block: Buffer): Buffer {
-  const payload = Buffer.allocUnsafe(8 + block.length);
-  payload.writeUInt32BE(index, 0);
-  payload.writeUInt32BE(begin, 4);
-  block.copy(payload, 8);
-  return buildMessage(MessageType.PIECE, payload);
-}
-
-export function buildCancel(index: number, begin: number, length: number): Buffer {
-  const payload = Buffer.allocUnsafe(12);
-  payload.writeUInt32BE(index, 0);
-  payload.writeUInt32BE(begin, 4);
-  payload.writeUInt32BE(length, 8);
-  return buildMessage(MessageType.CANCEL, payload);
-}

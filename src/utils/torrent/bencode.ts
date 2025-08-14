@@ -162,6 +162,12 @@ export function decode(data: Buffer | string): BencodeValue {
   return result.value;
 }
 
+function bufferToString(value: BencodeValue | undefined): string | undefined {
+  if (typeof value === 'string') return value;
+  if (Buffer.isBuffer(value)) return value.toString('utf8');
+  return undefined;
+}
+
 export function encode(value: BencodeValue | string): Buffer {
   if (typeof value === 'number') {
     if (!Number.isInteger(value)) {
@@ -205,12 +211,6 @@ export function encode(value: BencodeValue | string): Buffer {
   }
 
   throw new Error(`Cannot encode value of type ${typeof value}`);
-}
-
-function bufferToString(value: BencodeValue | undefined): string | undefined {
-  if (typeof value === 'string') return value;
-  if (Buffer.isBuffer(value)) return value.toString('utf8');
-  return undefined;
 }
 
 export function decodeTorrent(data: Buffer | string): TorrentFile {

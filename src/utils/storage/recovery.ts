@@ -1,47 +1,33 @@
 import { log } from '@/utils/system/logging';
-import type PeerConnection from '@/models/connection';
-import { PieceManager } from '@/models/piece-manager';
-import { requestPieceFromPeer, findActivePeerWithPiece } from '@/utils/download/download';
+import type PeerConnection from '@/models/peer/connection';
+import { PieceManager } from '@/models/peer/piece-manager';
 import {
   MAX_STUCK_PIECES_TO_RESET,
   MAX_MISSING_PIECES_TO_ANALYZE,
   MAX_PIECES_TO_RELAUNCH,
 } from '@/utils/system/constants';
 
-export function forceRecoveryActions(
+function findActivePeerWithPiece(
+  pieceIndex: number,
   pieceManager: PieceManager,
   connections: Map<string, PeerConnection>
-): { resetCount: number; requestCount: number } {
-  log('info', 'Executing force recovery actions for stagnant download...');
-
-  // 1. Reset toutes les pièces bloquées
-  const resetCount = pieceManager.forceResetStuckPieces();
-
-  // 2. Demander plus de pièces
-  let requestCount = 0;
-  const piecesPerPeer = 3; // Nombre fixe de pièces par peer
-
+): PeerConnection | null {
+  const peersWithPiece = pieceManager.getPeersWithPiece(pieceIndex);
   for (const connection of connections.values()) {
-    if (connection.isConnected && !connection.messageHandler.chokedStatus) {
-      for (let i = 0; i < piecesPerPeer; i++) {
-        const pieceIndex = pieceManager.getNextPieceToDownload(connection.peerAddress);
-        if (pieceIndex !== null) {
-          connection.requestPiece(pieceIndex);
-          requestCount++;
-          log('debug', `Recovery: Requested piece ${pieceIndex} from ${connection.peerAddress}`);
-        } else {
-          break;
-        }
-      }
+    if (peersWithPiece.includes(connection.peerAddress) && connection.isConnected) {
+      return connection;
     }
   }
+  return null;
+}
 
-  log(
-    'info',
-    `Recovery actions completed: ${resetCount} pieces reset, ${requestCount} new requests sent`
-  );
-
-  return { resetCount, requestCount };
+function requestPieceFromPeer(connection: PeerConnection, pieceIndex: number): boolean {
+  if (!connection.messageHandler.chokedStatus) {
+    connection.requestPiece(pieceIndex);
+    log('debug', `Requested piece ${pieceIndex} from ${connection.peerAddress}`);
+    return true;
+  }
+  return false;
 }
 
 export function analyzeSlowProgress(

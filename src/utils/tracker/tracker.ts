@@ -1,9 +1,7 @@
-import { TorrentMetadata } from '@/models/metadata';
-import { HTTPTracker } from '@/models/http-tracker';
-import { UDPTracker } from '@/models/udp-tracker';
+import { TorrentMetadata } from '@/models/torrents/metadata';
+import { HTTPTracker } from '@/models/trackers/http-tracker';
+import { UDPTracker } from '@/models/trackers/udp-tracker';
 import type { BaseAnnounceParams, AnnounceParams, AnnounceResponse } from '@/types/tracker';
-import type { Peer } from '@/types';
-import { DownloadManager } from '@/models/download-manager';
 import { log } from '@/utils/system/logging';
 import { DEFAULT_PORT, DEFAULT_NUMWANT } from '@/utils/system/constants';
 import { getClientPeerId } from '@/utils/protocol/peer-id';
@@ -52,7 +50,7 @@ export async function announceToTracker(
       return null;
     }
 
-    log('success', `Tracker responded successfully`);
+    log('pass', `Tracker responded successfully`);
     log(
       'info',
       `Peers: ${response.peers.length} | Seeders: ${response.complete} | Leechers: ${response.incomplete}`
@@ -61,55 +59,9 @@ export async function announceToTracker(
     return response;
   } catch (error) {
     log(
-      'error',
+      'fail',
       `Tracker ${tracker.url} failed: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
     return null;
   }
-}
-
-// Fonction simple pour compatibilité - utilisez TrackerManager pour une gestion avancée
-export async function announceToTrackers(
-  metadata: TorrentMetadata,
-  trackers: { url: string; protocol: string }[],
-  downloadManager: DownloadManager
-): Promise<Peer[]> {
-  const announceParams = createAnnounceParams(metadata);
-  const peers: Peer[] = [];
-
-  // Utilise tous les trackers mais limite à 5 max
-  const trackersToUse = trackers.slice(0, 5);
-
-  for (const tracker of trackersToUse) {
-    const response = await announceToTracker(tracker, metadata, announceParams);
-
-    if (!response) continue;
-
-    const newPeers = response.peers.filter((peer: Peer) => {
-      return !peers.some((p) => p.ip === peer.ip && p.port === peer.port);
-    });
-
-    peers.push(...newPeers);
-    downloadManager.addPeers(newPeers);
-
-    if (newPeers.length > 0) {
-      log('debug', `Added ${newPeers.length} new unique peer(s)`);
-    }
-  }
-
-  return peers;
-}
-
-// Fonction dépréciée - utilisez TrackerManager.startAutomaticDiscovery() à la place
-export function startPeerDiscovery(
-  metadata: TorrentMetadata,
-  trackers: { url: string; protocol: string }[],
-  downloadManager: DownloadManager
-): NodeJS.Timeout {
-  return setInterval(async () => {
-    if (downloadManager.currentStats.activePeers < 30) {
-      log('debug', 'Searching for more peers...');
-      await announceToTrackers(metadata, trackers, downloadManager);
-    }
-  }, 120000); // 2 minutes au lieu de 5
 }
