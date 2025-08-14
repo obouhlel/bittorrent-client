@@ -1,11 +1,11 @@
-import { log } from '@/utils/system/logging';
-import type PeerConnection from '@/models/peer/connection';
-import { PieceManager } from '@/models/peer/piece-manager';
+import { log } from '~/utils/system/logging';
+import type PeerConnection from '~/models/peer/connection';
+import { PieceManager } from '~/models/peer/piece-manager';
 import {
   MAX_STUCK_PIECES_TO_RESET,
   MAX_MISSING_PIECES_TO_ANALYZE,
   MAX_PIECES_TO_RELAUNCH,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 
 function findActivePeerWithPiece(
   pieceIndex: number,

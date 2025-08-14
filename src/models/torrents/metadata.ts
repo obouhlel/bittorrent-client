@@ -1,7 +1,7 @@
-import type { TorrentFile, FileInfo, Piece, ITorrentMetadata } from '@/types/torrent';
-import type { Tracker } from '@/types/network';
-import { calculateInfoHash } from '@/utils/torrent/hash';
-import { validateTorrent } from '@/utils/torrent/validator';
+import type { TorrentFile, FileInfo, Piece, ITorrentMetadata } from '~/types/torrent';
+import type { Tracker } from '~/types/network';
+import { calculateInfoHash } from '~/utils/torrent/hash';
+import { validateTorrent } from '~/utils/torrent/validator';
 
 export class TorrentMetadata implements ITorrentMetadata {
   private torrent: TorrentFile;

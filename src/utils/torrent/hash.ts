@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
-import { encode, decode } from '@/utils/torrent/bencode';
-import type { InfoHashResult, BencodeValue, BencodeDict } from '@/types';
+import { encode, decode } from '~/utils/torrent/bencode';
+import type { InfoHashResult, BencodeValue, BencodeDict } from '~/types';
 
 export function calculateInfoHash(torrentData: Buffer): InfoHashResult {
   const decoded = decode(torrentData) as BencodeDict;

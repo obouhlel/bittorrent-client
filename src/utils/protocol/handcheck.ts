@@ -5,7 +5,7 @@ import {
   RESERVED_BYTES_SIZE,
   INFO_HASH_SIZE,
   PEER_ID_SIZE,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 
 export function buildHandshake(infoHash: Buffer, peerId: Buffer | undefined): Buffer {
   if (!infoHash) {

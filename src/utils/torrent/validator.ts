@@ -1,4 +1,4 @@
-import type { TorrentFile, ValidationResult } from '@/types';
+import type { TorrentFile, ValidationResult } from '~/types';
 
 export function validateTorrent(torrent: TorrentFile): ValidationResult {
   const errors: string[] = [];

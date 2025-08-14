@@ -1,14 +1,14 @@
-import { log } from '@/utils/system/logging';
-import type { TorrentMetadata } from '@/models/torrents/metadata';
-import type { Peer, DownloadConfig, DownloadStats } from '@/types';
+import { log } from '~/utils/system/logging';
+import type { TorrentMetadata } from '~/models/torrents/metadata';
+import type { Peer, DownloadConfig, DownloadStats } from '~/types';
 import {
   categorizeConnectionError,
   shouldRetryError,
   getRetryDelay,
-} from '@/utils/download/connection-error';
-import PeerConnection from '@/models/peer/connection';
-import { FileManager } from '@/models/storage/file-manager';
-import { PieceManager } from '@/models/peer/piece-manager';
+} from '~/utils/storage/connection-error';
+import PeerConnection from '~/models/peer/connection';
+import { FileManager } from '~/models/storage/file-manager';
+import { PieceManager } from '~/models/peer/piece-manager';
 import {
   formatTime,
   formatSpeed,
@@ -20,8 +20,8 @@ import {
   cleanupDisconnectedPeers,
   shouldRetryPeers,
   getPeersToRetry,
-} from '@/utils/download/download';
-import { analyzeSlowProgress, checkForStuckPieces } from '@/utils/download/recovery';
+} from '~/utils/storage/download';
+import { analyzeSlowProgress, checkForStuckPieces } from '~/utils/storage/recovery';
 import {
   DEFAULT_MAX_CONNECTIONS,
   DEFAULT_CONNECT_TIMEOUT,
@@ -33,7 +33,7 @@ import {
   PROGRESS_LOG_INTERVAL,
   STUCK_PIECES_CHECK_INTERVAL,
   MIN_CONNECTIONS_FOR_FORCE_RETRY,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 
 interface ITrackerManager {
   resetAndRetryAllTrackers(): Promise<Peer[]>;

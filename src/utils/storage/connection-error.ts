@@ -1,4 +1,4 @@
-import { log } from '@/utils/system/logging';
+import { log } from '~/utils/system/logging';
 
 export interface ConnectionError {
   code: string;

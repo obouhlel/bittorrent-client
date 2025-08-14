@@ -22,7 +22,7 @@
     // Path mapping for absolute imports
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "~/*": ["src/*"]
     },
 
     // Best practices

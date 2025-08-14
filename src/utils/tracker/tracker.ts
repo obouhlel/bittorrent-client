@@ -1,10 +1,10 @@
-import { TorrentMetadata } from '@/models/torrents/metadata';
-import { HTTPTracker } from '@/models/trackers/http-tracker';
-import { UDPTracker } from '@/models/trackers/udp-tracker';
-import type { BaseAnnounceParams, AnnounceParams, AnnounceResponse } from '@/types/tracker';
-import { log } from '@/utils/system/logging';
-import { DEFAULT_PORT, DEFAULT_NUMWANT } from '@/utils/system/constants';
-import { getClientPeerId } from '@/utils/protocol/peer-id';
+import { TorrentMetadata } from '~/models/torrents/metadata';
+import { HTTPTracker } from '~/models/trackers/http-tracker';
+import { UDPTracker } from '~/models/trackers/udp-tracker';
+import type { BaseAnnounceParams, AnnounceParams, AnnounceResponse } from '~/types/tracker';
+import { log } from '~/utils/system/logging';
+import { DEFAULT_PORT, DEFAULT_NUMWANT } from '~/utils/system/constants';
+import { getClientPeerId } from '~/utils/protocol/peer-id';
 
 export function createAnnounceParams(metadata: TorrentMetadata): BaseAnnounceParams {
   return {

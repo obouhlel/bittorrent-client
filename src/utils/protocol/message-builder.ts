@@ -1,5 +1,5 @@
-import { MessageType } from '@/types';
-import { buildMessage, buildKeepAlive } from '@/utils/protocol/message';
+import { MessageType } from '~/types';
+import { buildMessage, buildKeepAlive } from '~/utils/protocol/message';
 
 export { buildMessage, buildKeepAlive };
 

@@ -1,10 +1,10 @@
-import '@/env';
-import { log } from '@/utils/system/logging';
-import { DownloadManager } from '@/models/storage/download-manager';
-import type { TorrentMetadata } from '@/models/torrents/metadata';
-import { TorrentMetadata as TorrentMetadataClass } from '@/models/torrents/metadata';
-import { decodeTorrent } from '@/utils/torrent/bencode';
-import { TrackerManager } from '@/models/trackers/tracker-manager';
+import '~/env';
+import { log } from '~/utils/system/logging';
+import { DownloadManager } from '~/models/storage/download-manager';
+import type { TorrentMetadata } from '~/models/torrents/metadata';
+import { TorrentMetadata as TorrentMetadataClass } from '~/models/torrents/metadata';
+import { decodeTorrent } from '~/utils/torrent/bencode';
+import { TrackerManager } from '~/models/trackers/tracker-manager';
 import {
   DEFAULT_PORT,
   DEFAULT_NUMWANT,
@@ -12,7 +12,7 @@ import {
   DEFAULT_TORRENT_FILE_PATH,
   BYTES_TO_MB,
   BYTES_TO_KB,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 
 async function loadTorrentFile(path: string): Promise<TorrentMetadata> {
   log('info', `Loading torrent file: ${path}`);

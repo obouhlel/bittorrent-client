@@ -1,6 +1,6 @@
-import { log } from '@/utils/system/logging';
-import type { Peer, DownloadStats } from '@/types';
-import type PeerConnection from '@/models/peer/connection';
+import { log } from '~/utils/system/logging';
+import type { Peer, DownloadStats } from '~/types';
+import type PeerConnection from '~/models/peer/connection';
 import {
   BYTES_TO_KB,
   SECONDS_TO_MS,
@@ -9,7 +9,7 @@ import {
   MIN_ACTIVE_CONNECTIONS,
   RETRY_PEER_LIMIT,
   MAX_FAILED_PEERS_TO_RETRY,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 
 export function formatTime(seconds: number): string {
   if (!isFinite(seconds)) return '∞';

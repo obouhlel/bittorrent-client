@@ -1,14 +1,14 @@
-import { TorrentMetadata } from '@/models/torrents/metadata';
-import { log } from '@/utils/system/logging';
-import { announceToTracker, createAnnounceParams } from '@/utils/tracker/tracker';
-import { DownloadManager } from '@/models/storage/download-manager';
-import type { Peer } from '@/types';
-import type { AnnounceResponse } from '@/types/tracker';
+import { TorrentMetadata } from '~/models/torrents/metadata';
+import { log } from '~/utils/system/logging';
+import { announceToTracker, createAnnounceParams } from '~/utils/tracker/tracker';
+import { DownloadManager } from '~/models/storage/download-manager';
+import type { Peer } from '~/types';
+import type { AnnounceResponse } from '~/types/tracker';
 import {
   MIN_PEERS_FOR_HEALTHY_SWARM,
   TRACKER_RETRY_INTERVAL_HEALTHY,
   TRACKER_RETRY_INTERVAL_STRUGGLING,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 
 interface TrackerInfo {
   url: string;

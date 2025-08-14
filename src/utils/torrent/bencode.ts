@@ -1,5 +1,5 @@
-import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile, ParseResult } from '@/types';
-import { validateTorrent } from '@/utils/torrent/validator';
+import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile, ParseResult } from '~/types';
+import { validateTorrent } from '~/utils/torrent/validator';
 
 function parseInteger(data: Buffer, position: number): ParseResult<number> {
   if (data[position] !== 0x69) {

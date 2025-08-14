@@ -1,6 +1,6 @@
-import { MessageType } from '@/types';
-import type { ParsedMessagePayload } from '@/types';
-import { PIECE_INDEX_SIZE, PIECE_OFFSET_SIZE, PIECE_LENGTH_SIZE } from '@/utils/system/constants';
+import { MessageType } from '~/types';
+import type { ParsedMessagePayload } from '~/types';
+import { PIECE_INDEX_SIZE, PIECE_OFFSET_SIZE, PIECE_LENGTH_SIZE } from '~/utils/system/constants';
 
 export function buildMessage(messageId: MessageType, payload?: Buffer): Buffer {
   const payloadLength = payload ? payload.length : 0;

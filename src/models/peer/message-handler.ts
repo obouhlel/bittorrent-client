@@ -1,7 +1,7 @@
-import { log } from '@/utils/system/logging';
-import { MessageType } from '@/types';
-import type { MessageHandlerFunction } from '@/types';
-import { parseMessagePayload } from '@/utils/protocol/message';
+import { log } from '~/utils/system/logging';
+import { MessageType } from '~/types';
+import type { MessageHandlerFunction } from '~/types';
+import { parseMessagePayload } from '~/utils/protocol/message';
 
 export class MessageHandlerService {
   private peerInfo: string;

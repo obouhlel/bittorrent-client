@@ -1,6 +1,6 @@
-import type { Peer } from '@/types';
-import { log } from '@/utils/system/logging';
-import { MessageHandlerService } from '@/models/peer/message-handler';
+import type { Peer } from '~/types';
+import { log } from '~/utils/system/logging';
+import { MessageHandlerService } from '~/models/peer/message-handler';
 import {
   MAX_BUFFER_SIZE,
   CONNECTION_TIMEOUT,
@@ -8,12 +8,12 @@ import {
   HANDSHAKE_SIZE,
   KEEP_ALIVE_INTERVAL,
   BLOCK_SIZE,
-} from '@/utils/system/constants';
+} from '~/utils/system/constants';
 import net from 'node:net';
-import { buildHandshake, parseHandshake } from '@/utils/protocol/handcheck';
-import { PieceManager } from '@/models/peer/piece-manager';
-import type { TorrentMetadata } from '@/models/torrents/metadata';
-import { FileManager } from '@/models/storage/file-manager';
+import { buildHandshake, parseHandshake } from '~/utils/protocol/handcheck';
+import { PieceManager } from '~/models/peer/piece-manager';
+import type { TorrentMetadata } from '~/models/torrents/metadata';
+import { FileManager } from '~/models/storage/file-manager';
 import {
   buildInterested,
   buildNotInterested,
@@ -23,7 +23,7 @@ import {
   buildUnchoke,
   buildHave,
   buildBitfield,
-} from '@/utils/protocol/message-builder';
+} from '~/utils/protocol/message-builder';
 
 export default class PeerConnection {
   private socket: net.Socket;

@@ -1,6 +1,6 @@
-import { log } from '@/utils/system/logging';
-import type { TorrentMetadata } from '@/models/torrents/metadata';
-import type { StorageFileInfo, ProgressInfo } from '@/types';
+import { log } from '~/utils/system/logging';
+import type { TorrentMetadata } from '~/models/torrents/metadata';
+import type { StorageFileInfo, ProgressInfo } from '~/types';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';

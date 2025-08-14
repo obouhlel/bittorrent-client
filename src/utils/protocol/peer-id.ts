@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { PEER_ID_PREFIX, PEER_ID_RANDOM_LENGTH } from '@/utils/system/constants';
+import { PEER_ID_PREFIX, PEER_ID_RANDOM_LENGTH } from '~/utils/system/constants';
 
 let peerId: Buffer | null = null;
 

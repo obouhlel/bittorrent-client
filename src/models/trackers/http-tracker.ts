@@ -1,9 +1,9 @@
-import type { TorrentMetadata } from '@/models/torrents/metadata';
-import type { Peer } from '@/types';
-import type { BencodeDict } from '@/types';
-import type { AnnounceParams, AnnounceResponse } from '@/types/tracker';
-import { decode } from '@/utils/torrent/bencode';
-import { getClientPeerId } from '@/utils/protocol/peer-id';
+import type { TorrentMetadata } from '~/models/torrents/metadata';
+import type { Peer } from '~/types';
+import type { BencodeDict } from '~/types';
+import type { AnnounceParams, AnnounceResponse } from '~/types/tracker';
+import { decode } from '~/utils/torrent/bencode';
+import { getClientPeerId } from '~/utils/protocol/peer-id';
 
 export class HTTPTracker {
   private announceUrl: string;
