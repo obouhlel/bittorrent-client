@@ -38,3 +38,15 @@ export interface InfoHashResult {
   buffer: Buffer;
   hex: string;
 }
+
+// Torrent metadata interface
+export interface ITorrentMetadata {
+  totalSize: number;
+  pieceCount: number;
+  pieceLength: number;
+  name: string;
+  isMultiFile: boolean;
+  getPieceSize(pieceIndex: number): number;
+  getPieces(): Piece[];
+  getFiles(): { index: number; path: string; length: number }[] | undefined;
+}
