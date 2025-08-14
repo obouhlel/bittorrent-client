@@ -15,6 +15,6 @@ export function log(level: 'info' | 'warn' | 'fail' | 'pass' | 'debug', message:
     debug: '\x1b[90m', // Gray
   };
   const reset = '\x1b[0m';
-  const levelStr = level.toUpperCase().padEnd(7).padStart(7);
+  const levelStr = level.toUpperCase().padEnd(5);
   console.log(`${getTimestamp()} ${colors[level]}${levelStr}${reset} ${message}`);
 }
