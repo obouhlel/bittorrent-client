@@ -1,11 +1,4 @@
-import type { TorrentFile } from '@/types';
-
-export interface ValidationResult {
-  valid: boolean;
-  errors: string[];
-  totalSize: number;
-  pieceCount: number;
-}
+import type { TorrentFile, ValidationResult } from '@/types';
 
 export function validateTorrent(torrent: TorrentFile): ValidationResult {
   const errors: string[] = [];
