@@ -24,37 +24,6 @@ To run in development mode:
 bun dev
 ```
 
-Example output:
-
-```log
-$ bun run --watch src/index.ts
-[10:24:08] INFO    BitTorrent client v1.0.0
-[10:24:08] INFO    BitTorrent client starting...
-[10:24:08] INFO    Loading torrent file: ./torrents/BigBuckBunny_124_archive.torrent
-[10:24:08] SUCCESS Torrent loaded: BigBuckBunny_124
-[10:24:08] INFO    Size: 420.95 MB (441,396,773 bytes)
-[10:24:08] INFO    Piece length: 512 KB
-[10:24:08] INFO    Total pieces: 842
-[10:24:08] INFO    Info hash: 5e7886d42a52ae66da4541d88882a04f9a34a649
-[10:24:08] INFO    Announce list contains 2 tracker(s)
-[10:24:08] DEBUG   HTTP trackers: 2
-[10:24:08] INFO    Starting announce phase...
-[10:24:08] DEBUG   Port: 6881
-[10:24:08] DEBUG   Requesting 50 peers
-[10:24:08] INFO    Contacting tracker: http://bt1.archive.org:6969/announce
-[10:24:08] DEBUG   Protocol: HTTP
-[10:24:08] DEBUG   Sending announce request...
-[10:24:09] SUCCESS Tracker responded successfully
-[10:24:09] INFO    Peers: 9 | Seeders: 7 | Leechers: 2
-[10:24:09] INFO    Next announce in: 1878 seconds
-[10:24:09] DEBUG   Added 9 new unique peer(s)
-[10:24:09] INFO    Sufficient peers found, stopping tracker search
-[10:24:09] INFO    Announce phase complete
-[10:24:09] SUCCESS Total unique peers collected: 9
-[10:24:09] INFO    Ready to start peer connections
-[10:24:09] INFO    Shutting down...
-```
-
 To build for production:
 
 ```bash
