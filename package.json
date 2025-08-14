@@ -18,6 +18,9 @@
       "eslint --fix",
       "prettier --write"
     ],
+    "*.{ts,tsx}": [
+      "tsc --noEmit"
+    ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
