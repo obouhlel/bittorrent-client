@@ -61,7 +61,7 @@ function createDownloadManager(metadata: TorrentMetadata): DownloadManager {
     downloadDir: './downloads',
     connectTimeout: 20000,
     retryAttempts: 1,
-    progressInterval: 2000,
+    progressInterval: 5000,
   });
 }
 
@@ -161,7 +161,7 @@ async function main(torrentPath: string): Promise<void> {
 
   // Log de configuration réseau pour debug
   log('debug', 'Network configuration:');
-  log('debug', `- Max connections: ${downloadManager.currentStats ? '50' : '50'}`);
+  log('debug', `- Max connections: ${downloadManager.currentStats}`);
   log('debug', `- Connect timeout: 15s`);
   log('debug', `- Retry attempts: 2`);
 

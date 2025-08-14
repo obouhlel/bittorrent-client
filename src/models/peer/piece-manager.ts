@@ -108,7 +108,7 @@ export class PieceManager {
     // Mettre à jour notre bitfield
     setBitfield(this.ourBitfield, pieceIndex);
 
-    log('info', `Piece ${pieceIndex} completed and saved`);
+    log('debug', `Piece ${pieceIndex} completed and saved`);
   }
 
   getNextPieceToDownload(fromPeerId?: string): number | null {

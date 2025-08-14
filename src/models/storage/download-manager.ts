@@ -53,6 +53,7 @@ export class DownloadManager {
   private startTime = 0;
   private bytesDownloaded = 0;
   private isRunning = false;
+  private isEnd = false;
   private lastETA = 0;
   private stuckPiecesTimer?: NodeJS.Timeout;
   private etaIncreaseCount = 0;
@@ -89,6 +90,10 @@ export class DownloadManager {
     log('info', `Download manager ready - Target: ${this.metadata.name}`);
     log('info', `Max connections: ${this.config.maxConnections}`);
     log('info', `Download directory: ${this.config.downloadDir}`);
+  }
+
+  getIsEnd(): boolean {
+    return this.isEnd;
   }
 
   addPeers(peers: Peer[]): void {
@@ -342,7 +347,7 @@ export class DownloadManager {
           ? Math.round(totalAvailablePieces / Math.max(1, this.connections.size))
           : 0;
 
-      logProgressUpdate(stats, avgPeerCompletion);
+      if (this.isRunning) logProgressUpdate(stats, avgPeerCompletion);
 
       // Détecter si l'ETA augmente
       if (this.lastETA > 0 && stats.eta > this.lastETA * ETA_INCREASE_THRESHOLD) {
@@ -422,7 +427,6 @@ export class DownloadManager {
   }
 
   private async loadExistingProgress(): Promise<void> {
-    // TODO: implémenter la restauration d'état depuis le disque
     const progress = await this.fileManager.getDownloadProgress();
     log(
       'info',
@@ -481,6 +485,7 @@ export class DownloadManager {
     log('info', `Total time: ${formatTime(totalTime)}`);
     log('info', `Average speed: ${formatSpeed(avgSpeed)}`);
     log('info', `Files saved to: ${this.config.downloadDir}`);
+    this.isEnd = true;
   }
 
   async stop(): Promise<void> {
@@ -499,6 +504,7 @@ export class DownloadManager {
       connection.close();
     }
     this.connections.clear();
+    this.isEnd = true;
   }
 
   resetAllPeers(): void {

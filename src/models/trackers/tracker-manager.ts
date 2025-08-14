@@ -186,7 +186,7 @@ export class TrackerManager {
   /**
    * Obtenir seulement les bons trackers (ceux qui fonctionnent)
    */
-  async announceToGoodTrackers(): Promise<Peer[]> {
+  async announceTrackers(): Promise<Peer[]> {
     // Utiliser seulement les trackers qui ont fonctionné
     const goodTrackers = this.trackers.filter(
       (t) => t.consecutiveFailures === 0 && t.totalPeers > 0
@@ -257,11 +257,13 @@ export class TrackerManager {
 
       // Annoncer seulement si on a besoin de plus de peers
       if (currentPeers < MIN_PEERS_FOR_HEALTHY_SWARM) {
-        await this.announceToGoodTrackers();
+        await this.announceTrackers();
       }
 
       // Programmer la prochaine vérification
-      this.discoveryTimer = setTimeout(checkAndAnnounce, interval);
+      if (this.downloadManager.getIsEnd() !== true) {
+        this.discoveryTimer = setTimeout(checkAndAnnounce, interval);
+      }
     };
 
     // Première annonce immédiate
