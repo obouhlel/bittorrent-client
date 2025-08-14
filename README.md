@@ -67,6 +67,90 @@ To run the built version:
 bun run prod
 ```
 
+## Project Structure
+
+```
+bittorrent-client/
+├── src/
+│   ├── index.ts                    # Main entry point
+│   ├── env.ts                      # Environment configuration
+│   ├── models/                     # Core domain models and business logic
+│   │   ├── peer/                   # Peer connection management
+│   │   │   ├── connection.ts       # TCP connection handling
+│   │   │   ├── message-handler.ts  # BitTorrent protocol message processing
+│   │   │   └── piece-manager.ts    # Piece download coordination
+│   │   ├── storage/                # File storage and download management
+│   │   │   ├── download-manager.ts # Download orchestration and progress tracking
+│   │   │   └── file-manager.ts     # File I/O operations
+│   │   ├── torrents/               # Torrent file processing
+│   │   │   └── metadata.ts         # Torrent metadata extraction and validation
+│   │   └── trackers/               # Tracker communication
+│   │       ├── http-tracker.ts     # HTTP tracker protocol implementation
+│   │       ├── udp-tracker.ts      # UDP tracker protocol implementation
+│   │       └── tracker-manager.ts  # Tracker selection and failover logic
+│   ├── types/                      # TypeScript type definitions
+│   │   └── index.ts                # Shared types and interfaces
+│   └── utils/                      # Utility functions and helpers
+│       ├── protocol/               # BitTorrent protocol utilities
+│       │   ├── bitfield.ts         # Bitfield operations for piece tracking
+│       │   ├── handcheck.ts        # Handshake protocol implementation
+│       │   ├── message.ts          # Protocol message parsing
+│       │   ├── message-builder.ts  # Protocol message construction
+│       │   └── peer-id.ts          # Peer ID generation
+│       ├── storage/                # Storage utilities
+│       │   ├── download.ts         # Download helper functions
+│       │   └── recovery.ts         # Download recovery and resume logic
+│       ├── system/                 # System utilities
+│       │   ├── constants.ts        # Application constants
+│       │   └── logging.ts          # Logging configuration and utilities
+│       ├── torrent/                # Torrent file utilities
+│       │   ├── bencode.ts          # Bencode encoder/decoder
+│       │   ├── hash.ts             # SHA-1 hashing for info_hash
+│       │   ├── torrent.ts          # Torrent file parsing
+│       │   └── validator.ts        # Torrent data validation
+│       └── tracker/                # Tracker utilities
+│           └── tracker.ts          # Common tracker functions
+├── tests/                          # Test files
+│   ├── bencode.test.ts            # Bencode parsing tests
+│   ├── decode-validation.test.ts  # Validation tests
+│   └── metadata.test.ts           # Metadata extraction tests
+├── torrents/                       # Sample torrent files
+├── dist/                           # Compiled JavaScript output
+├── package.json                    # Project dependencies
+├── tsconfig.json                   # TypeScript configuration
+└── .env                           # Environment variables
+```
+
+### Architecture Overview
+
+The BitTorrent client follows a modular architecture with clear separation of concerns:
+
+#### Core Components
+
+1. **Models Layer** (`src/models/`)
+   - Contains the main business logic and domain models
+   - Each subdirectory represents a major feature area (peers, storage, torrents, trackers)
+   - Implements the core BitTorrent protocol logic
+
+2. **Utils Layer** (`src/utils/`)
+   - Provides reusable utility functions
+   - Handles low-level protocol operations
+   - Manages system interactions and logging
+
+3. **Types** (`src/types/`)
+   - Centralized TypeScript type definitions
+   - Ensures type safety across the application
+
+#### Key Features
+
+- **Multi-Tracker Support**: Handles both HTTP and UDP tracker protocols with automatic failover
+- **Peer Management**: Manages concurrent peer connections with message handling
+- **Piece Management**: Coordinates piece downloads with validation and recovery
+- **Storage Management**: Efficient file I/O with support for multi-file torrents
+- **Bencode Parser**: Complete implementation of the BitTorrent encoding format
+- **Resume Support**: Download recovery and resume capabilities
+- **Logging System**: Comprehensive logging with different log levels
+
 ## Bencode Implementation
 
 This client includes a comprehensive Bencode parser and encoder implementation (`src/utils/bencode.ts`) that handles the BitTorrent encoding format.
