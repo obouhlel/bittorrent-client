@@ -1,6 +1,6 @@
-import type { TorrentMetadata } from '@/models/metadata';
-import type { Peer } from '@/models/torrent';
-import type { BencodeDict } from '@/models/torrent';
+import type { TorrentMetadata } from '@/types/metadata';
+import type { Peer } from '@/types';
+import type { BencodeDict } from '@/types';
 import { decode } from '@/utils/bencode';
 import { getClientPeerId } from '@/utils/peer-id';
 

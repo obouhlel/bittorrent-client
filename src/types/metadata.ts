@@ -1,4 +1,5 @@
-import type { TorrentFile, Tracker, Piece } from '@/models/torrent';
+import type { TorrentFile, Piece } from './torrent';
+import type { Tracker } from './network';
 import { calculateInfoHash } from '@/utils/hash';
 import { validateTorrent } from '@/utils/validator';
 

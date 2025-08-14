@@ -1,4 +1,4 @@
-import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile } from '@/models/torrent';
+import type { BencodeValue, BencodeArray, BencodeDict, TorrentFile } from '@/types';
 import { validateTorrent } from '@/utils/validator';
 
 interface ParseResult<T> {

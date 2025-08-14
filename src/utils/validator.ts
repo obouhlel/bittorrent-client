@@ -1,4 +1,4 @@
-import type { TorrentFile } from '@/models/torrent';
+import type { TorrentFile } from '@/types';
 
 export interface ValidationResult {
   valid: boolean;

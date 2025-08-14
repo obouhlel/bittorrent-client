@@ -1,5 +1,5 @@
-import type { TorrentMetadata } from '@/models/metadata';
-import type { Peer } from '@/models/torrent';
+import type { TorrentMetadata } from '@/types/metadata';
+import type { Peer } from '@/types';
 import type { AnnounceParams, AnnounceResponse } from '@/trackers/http-tracker';
 import dgram from 'node:dgram';
 import crypto from 'node:crypto';

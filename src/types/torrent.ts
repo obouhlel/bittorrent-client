@@ -1,3 +1,4 @@
+// Torrent file structure types
 export interface TorrentFile {
   announce: string;
   'announce-list'?: string[][];
@@ -25,39 +26,15 @@ export interface FileInfo {
   'path.utf-8'?: string[];
 }
 
-export interface Tracker {
-  url: string;
-  tier: number;
-  protocol: 'http' | 'https' | 'udp';
-}
-
-export interface Peer {
-  ip: string;
-  port: number;
-  id?: Buffer;
-}
-
+// Metadata types
 export interface Piece {
   index: number;
   hash: Buffer;
   length: number;
   downloaded: boolean;
-  blocks?: Block[];
-}
-
-export interface Block {
-  offset: number;
-  length: number;
-  data?: Buffer;
 }
 
 export interface InfoHashResult {
   buffer: Buffer;
   hex: string;
-}
-
-export type BencodeValue = number | string | Buffer | BencodeArray | BencodeDict;
-export type BencodeArray = BencodeValue[];
-export interface BencodeDict {
-  [key: string]: BencodeValue;
 }
