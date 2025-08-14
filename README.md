@@ -153,7 +153,7 @@ The BitTorrent client follows a modular architecture with clear separation of co
 
 ## Bencode Implementation
 
-This client includes a comprehensive Bencode parser and encoder implementation (`src/utils/bencode.ts`) that handles the BitTorrent encoding format.
+This client includes a comprehensive Bencode parser and encoder implementation that handles the BitTorrent encoding format.
 
 ### Bencode Format Support
 
