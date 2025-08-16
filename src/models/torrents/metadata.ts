@@ -3,7 +3,7 @@ import type { TorrentFile, FileInfo, Piece, Files } from '~/types';
 import type { Tracker } from '~/types';
 import { calculateInfoHash } from '~/utils/torrent/hash';
 import { validateTorrent } from '~/utils/torrent/validator';
-import { parseAnnounce } from '~/utils/torrent/announce';
+import { parseTrackers } from '~/utils/torrent/trackers';
 import { getClientPeerId } from '~/utils/protocol/peer-id';
 
 export class TorrentMetadata implements ITorrentMetadata {
@@ -76,7 +76,7 @@ export class TorrentMetadata implements ITorrentMetadata {
 
   getTrackers(): Tracker[] {
     if (!this._trackers) {
-      this._trackers = parseAnnounce(this.torrent);
+      this._trackers = parseTrackers(this.torrent);
     }
     return this._trackers;
   }
