@@ -9,7 +9,7 @@ import {
   UDP_ANNOUNCE_RESPONSE_MIN_SIZE,
   UDP_PEER_SIZE,
   UDP_ANNOUNCE_RESPONSE_HEADER_SIZE,
-  TrackerEvent,
+  UDPEvent,
 } from '~/utils/system/constants';
 
 export function buildConnectRequest(transactionId: number): Buffer {
@@ -141,12 +141,12 @@ function parsePeers(buffer: Buffer): Peer[] {
 function parseTrackerEvent(event?: string): number {
   switch (event) {
     case 'started':
-      return TrackerEvent.STARTED;
+      return UDPEvent.STARTED;
     case 'completed':
-      return TrackerEvent.COMPLETED;
+      return UDPEvent.COMPLETED;
     case 'stopped':
-      return TrackerEvent.STOPPED;
+      return UDPEvent.STOPPED;
     default:
-      return TrackerEvent.NONE;
+      return UDPEvent.NONE;
   }
 }

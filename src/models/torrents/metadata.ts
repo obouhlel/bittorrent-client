@@ -2,15 +2,20 @@ import type { TorrentFile, FileInfo, Piece, ITorrentMetadata } from '~/types/tor
 import type { Tracker } from '~/types/network';
 import { calculateInfoHash } from '~/utils/torrent/hash';
 import { validateTorrent } from '~/utils/torrent/validator';
+import { parseTrackers } from '~/utils/torrent/tracker';
+import { getClientPeerId } from '~/utils/protocol/peer-id';
 
 export class TorrentMetadata implements ITorrentMetadata {
-  private torrent: TorrentFile;
+  private _peerId?: Buffer;
   private _infoHash?: string;
   private _totalSize?: number;
   private _pieceCount?: number;
   private _trackers?: Tracker[];
 
-  constructor(torrent: TorrentFile) {
+  constructor(
+    private torrent: TorrentFile,
+    private data: Buffer
+  ) {
     const validation = validateTorrent(torrent);
     if (!validation.valid) {
       throw new Error(`Invalid torrent: ${validation.errors.join(', ')}`);
@@ -20,18 +25,19 @@ export class TorrentMetadata implements ITorrentMetadata {
     this._pieceCount = validation.pieceCount;
   }
 
-  get infoHash(): string {
-    if (!this._infoHash) {
-      throw new Error(
-        'Info hash not calculated. Use calculateInfoHash() with original torrent data.'
-      );
+  get peerId(): Buffer {
+    if (!this._peerId) {
+      this._peerId = Buffer.from(getClientPeerId());
     }
-    return this._infoHash;
+    return this._peerId;
   }
 
-  setInfoHash(torrentData: Buffer): void {
-    const result = calculateInfoHash(torrentData);
-    this._infoHash = result.hex;
+  get infoHash(): string {
+    if (!this._infoHash) {
+      const result = calculateInfoHash(this.data);
+      this._infoHash = result.hex;
+    }
+    return this._infoHash;
   }
 
   get totalSize(): number {
@@ -69,56 +75,9 @@ export class TorrentMetadata implements ITorrentMetadata {
 
   getTrackers(): Tracker[] {
     if (!this._trackers) {
-      this._trackers = this.parseTrackers();
+      this._trackers = parseTrackers(this.torrent);
     }
     return this._trackers;
-  }
-
-  private parseTrackers(): Tracker[] {
-    const trackers: Tracker[] = [];
-
-    trackers.push({
-      url: this.torrent.announce,
-      tier: 0,
-      protocol: this.getProtocol(this.torrent.announce),
-    });
-
-    if (this.torrent['announce-list']) {
-      for (let tier = 0; tier < this.torrent['announce-list'].length; tier++) {
-        const tierUrls = this.torrent['announce-list'][tier];
-        if (tierUrls) {
-          for (const url of tierUrls) {
-            if (url !== this.torrent.announce) {
-              trackers.push({
-                url,
-                tier: tier + 1,
-                protocol: this.getProtocol(url),
-              });
-            }
-          }
-        }
-      }
-    }
-
-    return trackers.sort((a, b) => {
-      if (a.tier !== b.tier) {
-        return a.tier - b.tier;
-      }
-      if (a.protocol === 'http' && b.protocol !== 'http') {
-        return -1;
-      }
-      if (a.protocol !== 'http' && b.protocol === 'http') {
-        return 1;
-      }
-      return 0;
-    });
-  }
-
-  private getProtocol(url: string): 'http' | 'https' | 'udp' {
-    if (url.startsWith('http://')) return 'http';
-    if (url.startsWith('https://')) return 'https';
-    if (url.startsWith('udp://')) return 'udp';
-    return 'http';
   }
 
   getPieces(): Piece[] {

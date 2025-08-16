@@ -1,8 +1,9 @@
 // Network and peer types
+export type Protocol = 'http' | 'https' | 'udp';
+
 export interface Tracker {
   url: string;
-  tier: number;
-  protocol: 'http' | 'https' | 'udp';
+  protocol: Protocol;
 }
 
 export interface Peer {

@@ -1,5 +1,5 @@
 // Network and buffer constants
-export const MAX_BUFFER_SIZE = 1024 * 1024;
+export const ONE_MB = 1024 * 1024;
 export const CONNECTION_TIMEOUT = 30000;
 
 // BitTorrent protocol constants
@@ -60,20 +60,8 @@ export const BIT_SHIFT_POSITIONS = 7;
 // Tracker constants
 export const DEFAULT_PORT = 6881;
 export const DEFAULT_NUMWANT = 80; // Plus de peers demandés
-export const BATCH_SIZE = 5; // Plus de trackers par round
-export const MIN_PEERS_FOR_HEALTHY_SWARM = 30; // Seuil pour swarm sain
-export const MIN_PEERS_FOR_STRUGGLING_SWARM = 10; // Seuil pour swarm en difficulté
-export const UDP_TIMEOUT = 15000;
-export const TRACKER_RETRY_INTERVAL_HEALTHY = 180000; // 3 minutes si beaucoup de peers
-export const TRACKER_RETRY_INTERVAL_STRUGGLING = 60000; // 1 minute si peu de peers
-export const TRACKER_FAILURE_RETRY_DELAY = 30000; // 30s avant de retry un tracker failed
-
-export enum TrackerEvent {
-  NONE = 0,
-  COMPLETED = 1,
-  STARTED = 2,
-  STOPPED = 3,
-}
+export const REFRESH_TRACKERS = 60000;
+export const NUMBER_TRACKERS_RUN = 5;
 
 // HTTP Tracker constants
 export const HTTP_TIMEOUT = 30000;
@@ -85,7 +73,14 @@ export const UDP_ACTION_ANNOUNCE = 1;
 export const UDP_CONNECT_REQUEST_SIZE = 16;
 export const UDP_ANNOUNCE_RESPONSE_MIN_SIZE = 20;
 export const UDP_PEER_SIZE = 6;
+export const UDP_TIMEOUT = 15000;
 export const UDP_ANNOUNCE_RESPONSE_HEADER_SIZE = 20;
+export enum UDPEvent {
+  NONE = 0,
+  COMPLETED = 1,
+  STARTED = 2,
+  STOPPED = 3,
+}
 
 // Client constants
 export const CLIENT_VERSION = '1.0.0';
