@@ -37,6 +37,7 @@ import {
 
 interface ITrackerManager {
   resetAndRetryAllTrackers(): Promise<Peer[]>;
+  stopAutomaticDiscovery(): void;
 }
 export class DownloadManager {
   private metadata: TorrentMetadata;
@@ -428,6 +429,13 @@ export class DownloadManager {
     await this.pieceManager.finishDownload();
 
     this.isRunning = false;
+    this.isEnd = true;
+
+    // Stop tracker manager to prevent further announcements
+    if (this.trackerManager) {
+      this.trackerManager.stopAutomaticDiscovery();
+      log('info', 'Stopped tracker announcements');
+    }
 
     const totalTime = (Date.now() - this.startTime) / 1000;
     const avgSpeed = this.metadata.totalSize / totalTime;
@@ -436,7 +444,6 @@ export class DownloadManager {
     log('info', `Total time: ${formatTime(totalTime)}`);
     log('info', `Average speed: ${formatSpeed(avgSpeed)}`);
     log('info', `Files saved to: ${this.config.downloadDir}`);
-    this.isEnd = true;
   }
 
   async stop(): Promise<void> {

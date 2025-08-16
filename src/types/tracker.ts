@@ -26,11 +26,14 @@ export interface AnnounceResponse {
 
 export interface TrackerInfo {
   url: string;
-  announce: string;
-  isWorking: boolean;
-  lastResponse?: Date;
-  failureCount: number;
-  lastError?: string;
+  protocol: string;
+  lastSuccess?: number;
+  lastFailure?: number;
+  consecutiveFailures: number;
+  totalPeers: number;
+  seeders: number;
+  leechers: number;
+  responseTime: number;
 }
 
 export interface ITrackerManager {

@@ -3,24 +3,12 @@ import { log } from '~/utils/system/logging';
 import { announceToTracker, createAnnounceParams } from '~/utils/tracker/tracker';
 import { DownloadManager } from '~/models/storage/download-manager';
 import type { Peer } from '~/types';
-import type { AnnounceResponse } from '~/types/tracker';
+import type { TrackerInfo, AnnounceResponse } from '~/types/tracker';
 import {
   MIN_PEERS_FOR_HEALTHY_SWARM,
   TRACKER_RETRY_INTERVAL_HEALTHY,
   TRACKER_RETRY_INTERVAL_STRUGGLING,
 } from '~/utils/system/constants';
-
-interface TrackerInfo {
-  url: string;
-  protocol: string;
-  lastSuccess?: number;
-  lastFailure?: number;
-  consecutiveFailures: number;
-  totalPeers: number;
-  seeders: number;
-  leechers: number;
-  responseTime: number;
-}
 
 export class TrackerManager {
   private trackers: TrackerInfo[] = [];
