@@ -75,13 +75,16 @@ export enum TrackerEvent {
   STOPPED = 3,
 }
 
+// HTTP Tracker constants
+export const HTTP_TIMEOUT = 30000;
+
 // UDP Tracker constants
 export const UDP_MAGIC_CONSTANT = 0x41727101980n;
 export const UDP_ACTION_CONNECT = 0;
 export const UDP_ACTION_ANNOUNCE = 1;
 export const UDP_CONNECT_REQUEST_SIZE = 16;
 export const UDP_ANNOUNCE_RESPONSE_MIN_SIZE = 20;
-export const UDP_PEER_SIZE = 6; // 4 bytes IP + 2 bytes port
+export const UDP_PEER_SIZE = 6;
 export const UDP_ANNOUNCE_RESPONSE_HEADER_SIZE = 20;
 
 // Client constants

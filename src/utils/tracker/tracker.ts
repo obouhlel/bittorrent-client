@@ -1,5 +1,5 @@
 import { TorrentMetadata } from '~/models/torrents/metadata';
-import { HTTPTracker } from '~/models/trackers/http-tracker';
+import { HTTPTracker } from '~/models/trackers/http/http-tracker';
 import { UDPTracker } from '~/models/trackers/udp/udp-tracker';
 import type { BaseAnnounceParams, AnnounceParams, AnnounceResponse } from '~/types/tracker';
 import { log } from '~/utils/system/logging';
