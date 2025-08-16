@@ -1,16 +1,17 @@
 import type { TrackerInfo, TrackerStats, Peer, TrackerEvent } from '~/types';
 import type { TorrentMetadata } from '~/models/torrents/metadata';
+import type { HTTPTracker } from './http/http-tracker';
+import type { ITrackerManager } from './tracker-manager.interface';
+import { UDPTracker } from './udp/udp-tracker';
+import { NUMBER_TRACKERS_RUN, REFRESH_TRACKERS } from '~/utils/system/constants';
 import {
   createTrackerInfo,
   initTrackerInstance,
   sortTrackersBySuccess,
   announceToTrackers,
 } from '~/utils/tracker/tracker';
-import type { HTTPTracker } from './http/http-tracker';
-import { UDPTracker } from './udp/udp-tracker';
-import { NUMBER_TRACKERS_RUN, REFRESH_TRACKERS } from '~/utils/system/constants';
 
-export class TrackerManager {
+export class TrackerManager implements ITrackerManager {
   private trackers: TrackerInfo[];
   private peers: Set<string>;
   private instances: Map<string, HTTPTracker | UDPTracker>;

@@ -1,8 +1,9 @@
-import type { TorrentFile, FileInfo, Piece, ITorrentMetadata } from '~/types/torrent';
-import type { Tracker } from '~/types/network';
+import type { ITorrentMetadata } from './metadata.interface';
+import type { TorrentFile, FileInfo, Piece, Files } from '~/types';
+import type { Tracker } from '~/types';
 import { calculateInfoHash } from '~/utils/torrent/hash';
 import { validateTorrent } from '~/utils/torrent/validator';
-import { parseTrackers } from '~/utils/torrent/tracker';
+import { parseAnnounce } from '~/utils/torrent/announce';
 import { getClientPeerId } from '~/utils/protocol/peer-id';
 
 export class TorrentMetadata implements ITorrentMetadata {
@@ -75,7 +76,7 @@ export class TorrentMetadata implements ITorrentMetadata {
 
   getTrackers(): Tracker[] {
     if (!this._trackers) {
-      this._trackers = parseTrackers(this.torrent);
+      this._trackers = parseAnnounce(this.torrent);
     }
     return this._trackers;
   }
@@ -99,9 +100,9 @@ export class TorrentMetadata implements ITorrentMetadata {
     return pieces;
   }
 
-  getFiles() {
-    if (this.isMultiFile) {
-      return this.torrent.info.files?.map((file: FileInfo, index: number) => ({
+  getFiles(): Files[] {
+    if (this.isMultiFile && this.torrent.info.files) {
+      return this.torrent.info.files.map((file: FileInfo, index: number) => ({
         index,
         path: file.path.join('/'),
         length: file.length,

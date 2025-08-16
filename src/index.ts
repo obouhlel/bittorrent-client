@@ -20,6 +20,7 @@ main(torrentFilePath)
   });
 
 async function main(path: string) {
+  // Parse Torrent
   const data = Buffer.from(await Bun.file(path).arrayBuffer());
   const torrentFile = decodeTorrent(data);
   const torrent = new TorrentMetadata(torrentFile, data);
@@ -29,32 +30,22 @@ async function main(path: string) {
   log('info', `Size of pieces: ${torrent.pieceLength / 1000} KB`);
   log('info', `Total length: ${(torrent.totalSize / 1000000).toPrecision(5)} MB`);
   log('info', `Found ${torrent.getTrackers().length} trackers`);
+  // Tracker manager
   const trackers = new TrackerManager(torrent);
-  // Découvrir les peers au démarrage
   log('info', 'Discovering peers from all trackers...');
   const initialPeers = await trackers.discoverPeers();
   log('pass', `Discovered ${initialPeers.length} unique peers`);
-
-  // Afficher le statut des trackers
   const trackerStatus = trackers.getTrackersStatus();
   const successfulTrackers = trackerStatus.filter((t) => t.lastSuccess).length;
   log('info', `${successfulTrackers}/${trackerStatus.length} trackers responded`);
-
-  // Démarrer l'auto-refresh
   trackers.startAutoRefresh();
   log('info', 'Started auto-refresh for peer discovery');
-
-  // Simuler des stats pour test
   trackers.updateStats({
     uploaded: 0,
-    downloaded: ONE_MB, // 1MB
+    downloaded: ONE_MB,
     left: torrent.totalSize - ONE_MB,
   });
-
-  // Attendre un peu et voir les peers
   await new Promise((resolve) => setTimeout(resolve, 5000));
   log('info', `Total peers discovered: ${trackers.getTotalPeersCount()}`);
-
-  // Cleanup
   await trackers.destroy();
 }

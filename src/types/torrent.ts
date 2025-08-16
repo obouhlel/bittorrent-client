@@ -13,11 +13,17 @@ export interface Info {
   name: string;
   pieces: Buffer;
   'piece length': number;
-  length?: number; // Single file mode
-  files?: FileInfo[]; // Multi-file mode
+  length?: number;
+  files?: FileInfo[];
   private?: number;
   'path.utf-8'?: string;
   'name.utf-8'?: string;
+}
+
+export interface Files {
+  index: number;
+  path: string;
+  length: number;
 }
 
 export interface FileInfo {
@@ -26,7 +32,6 @@ export interface FileInfo {
   'path.utf-8'?: string[];
 }
 
-// Metadata types
 export interface Piece {
   index: number;
   hash: Buffer;
@@ -37,16 +42,4 @@ export interface Piece {
 export interface InfoHashResult {
   buffer: Buffer;
   hex: string;
-}
-
-// Torrent metadata interface
-export interface ITorrentMetadata {
-  totalSize: number;
-  pieceCount: number;
-  pieceLength: number;
-  name: string;
-  isMultiFile: boolean;
-  getPieceSize(pieceIndex: number): number;
-  getPieces(): Piece[];
-  getFiles(): { index: number; path: string; length: number }[] | undefined;
 }

@@ -1,6 +1,6 @@
 import type { Protocol, TorrentFile, Tracker } from '~/types';
 
-export function parseTrackers(torrent: TorrentFile): Tracker[] {
+export function parseAnnounce(torrent: TorrentFile): Tracker[] {
   const trackers: Tracker[] = [];
 
   trackers.push({

@@ -6,30 +6,11 @@ import type {
   TrackerStats,
   TrackerEvent,
 } from '~/types';
-import { DEFAULT_NUMWANT, DEFAULT_PORT } from '../system/constants';
+import { DEFAULT_NUMWANT, DEFAULT_PORT } from '~/utils/system/constants';
 import { HTTPTracker } from '~/models/trackers/http/http-tracker';
 import { UDPTracker } from '~/models/trackers/udp/udp-tracker';
 import type { TorrentMetadata } from '~/models/torrents/metadata';
-import { log } from '../system/logging';
-
-export function createTrackerInfo(tracker: Tracker): TrackerInfo {
-  return {
-    url: tracker.url,
-    protocol: tracker.protocol,
-    failures: 0,
-    lastSuccess: undefined,
-  };
-}
-
-export function createTrackerInstance(
-  tracker: TrackerInfo,
-  metadata: TorrentMetadata
-): HTTPTracker | UDPTracker {
-  if (tracker.protocol === 'udp') {
-    return new UDPTracker(tracker.url, metadata);
-  }
-  return new HTTPTracker(tracker.url, metadata);
-}
+import { log } from '~/utils/system/logging';
 
 export function initTrackerInstance(
   trackers: TrackerInfo[],
@@ -45,7 +26,27 @@ export function initTrackerInstance(
   return instances;
 }
 
-export function createFullAnnounceParams(
+export function createTrackerInfo(tracker: Tracker): TrackerInfo {
+  return {
+    url: tracker.url,
+    protocol: tracker.protocol,
+    failures: 0,
+    event: undefined,
+    lastSuccess: undefined,
+  };
+}
+
+function createTrackerInstance(
+  tracker: TrackerInfo,
+  metadata: TorrentMetadata
+): HTTPTracker | UDPTracker {
+  if (tracker.protocol === 'udp') {
+    return new UDPTracker(tracker.url, metadata);
+  }
+  return new HTTPTracker(tracker.url, metadata);
+}
+
+function createFullAnnounceParams(
   stats: TrackerStats,
   event: TrackerEvent,
   metadata: TorrentMetadata
@@ -62,11 +63,11 @@ export function createFullAnnounceParams(
   };
 }
 
-export function getPeerKey(peer: Peer) {
+function getPeerKey(peer: Peer) {
   return `${peer.ip}:${peer.port}`;
 }
 
-export function deduplicatePeers(peers: Peer[], existingKeys: Set<string>): Peer[] {
+function deduplicatePeers(peers: Peer[], existingKeys: Set<string>): Peer[] {
   const newPeers: Peer[] = [];
   for (const peer of peers) {
     const key = getPeerKey(peer);
