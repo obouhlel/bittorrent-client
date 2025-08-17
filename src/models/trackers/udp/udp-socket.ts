@@ -15,22 +15,32 @@ export class UDPSocket {
   sendRequest(buffer: Buffer): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
+        cleanup();
         reject(new Error('UDP tracker request timeout'));
       }, this.timeout);
 
-      this.socket.once('message', (msg) => {
-        clearTimeout(timer);
+      const messageHandler = (msg: Buffer) => {
+        cleanup();
         resolve(msg);
-      });
+      };
 
-      this.socket.once('error', (error) => {
-        clearTimeout(timer);
+      const errorHandler = (error: Error) => {
+        cleanup();
         reject(error);
-      });
+      };
+
+      const cleanup = () => {
+        clearTimeout(timer);
+        this.socket.removeListener('message', messageHandler);
+        this.socket.removeListener('error', errorHandler);
+      };
+
+      this.socket.once('message', messageHandler);
+      this.socket.once('error', errorHandler);
 
       this.socket.send(buffer, this.port, this.host, (error) => {
         if (error) {
-          clearTimeout(timer);
+          cleanup();
           reject(error);
         }
       });
