@@ -29,9 +29,7 @@ export interface AnnounceResponse {
 export interface TrackerInfo {
   url: string;
   protocol: string;
-  failures: number;
   event?: TrackerEvent;
-  lastSuccess?: Date;
 }
 
 export interface TrackerStats {

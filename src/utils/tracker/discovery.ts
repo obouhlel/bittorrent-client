@@ -72,7 +72,6 @@ export async function discoverPeersProgressively(
 
       const response = await Promise.race([instance.announce(announceParams), timeoutPromise]);
 
-      trackerInfo.lastSuccess = new Date();
       log('pass', `Tracker ${key} success: ${response.peers.length} peers found`);
 
       for (const peer of response.peers) {
@@ -85,7 +84,6 @@ export async function discoverPeersProgressively(
 
       log('info', `Total unique peers: ${peersSet.size}/${targetCount}`);
     } catch (error) {
-      trackerInfo.failures++;
       log(
         'fail',
         `Tracker ${key} failed: ${error instanceof Error ? (error.message === '' ? 'Unknown error' : error.message) : 'Unknown error'}`
@@ -114,11 +112,9 @@ export async function announceToTrackers(
 
     try {
       const response = await instance.announce(announceParams);
-      trackerInfo.lastSuccess = new Date();
       log('pass', `Tracker ${key} success: ${response.peers.length} peers found`);
       return response.peers;
     } catch (error) {
-      trackerInfo.failures++;
       log(
         'fail',
         `Tracker ${key} failled: ${error instanceof Error ? (error.message === '' ? 'Unknow error' : error.message) : 'Unknow error'}`

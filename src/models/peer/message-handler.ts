@@ -22,6 +22,7 @@ export class MessageHandler {
   }
 
   handleMessage(key: string, peerInfo: PeerConnectionInfo, message: PeerMessage): void {
+    log('debug', `Received message type ${message.type} from ${key}`);
     const handler = this.handlers.get(message.type);
     if (handler) {
       handler(key, peerInfo, message);
@@ -177,5 +178,10 @@ export class MessageHandler {
   private sendUnchokeMessage(peerInfo: PeerConnectionInfo): void {
     peerInfo.amChoking = false;
     log('debug', 'Sent unchoke message');
+  }
+
+  sendInterestedMessage(peerInfo: PeerConnectionInfo): void {
+    peerInfo.amInterested = true;
+    log('debug', 'Sent interested message');
   }
 }

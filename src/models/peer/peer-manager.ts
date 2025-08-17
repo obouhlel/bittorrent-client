@@ -25,13 +25,23 @@ export class PeerManager {
   }
 
   async connectToPeers(peers: Peer[]): Promise<void> {
+    log('debug', `Attempting to connect to ${peers.length} peers`);
     const connectPromises = peers.map((peer) => this.connectToPeer(peer));
     const results = await Promise.allSettled(connectPromises);
 
     const successful = results.filter((r) => r.status === 'fulfilled').length;
     const failed = results.filter((r) => r.status === 'rejected').length;
+    const failedReasons = results
+      .filter((r) => r.status === 'rejected')
+      .map((r) => (r as PromiseRejectedResult).reason?.message || 'Unknown error');
 
     log('info', `Connected to ${successful}/${peers.length} peers (${failed} failed)`);
+    if (failed > 0) {
+      log(
+        'debug',
+        `Failed connection reasons: ${failedReasons.slice(0, 3).join(', ')}${failed > 3 ? '...' : ''}`
+      );
+    }
   }
 
   private async connectToPeer(peer: Peer): Promise<void> {
@@ -73,7 +83,8 @@ export class PeerManager {
       await this.sendHandshake(key);
       this.startHandshakeTimeout(key);
     } catch (error) {
-      log('fail', `Failed to connect to peer (${key}): ${error}`);
+      log('warn', `Failed to connect to peer (${key}): ${error}`);
+      this.disconnectPeer(key);
       throw error;
     }
   }
@@ -94,6 +105,10 @@ export class PeerManager {
       peerInfo.handshakeSent = true;
 
       log('debug', `Sent handshake to ${key}`);
+
+      if (peerInfo.handshakeReceived) {
+        this.messageHandler.sendInterestedMessage(peerInfo);
+      }
     } catch (error) {
       log('fail', `Failed to send handshake to ${key}: ${error}`);
       this.disconnectPeer(key);
@@ -121,6 +136,8 @@ export class PeerManager {
 
     if (!peerInfo.handshakeSent) {
       this.sendHandshake(key);
+    } else {
+      this.messageHandler.sendInterestedMessage(peerInfo);
     }
   }
 
@@ -147,7 +164,10 @@ export class PeerManager {
     const timeout = setTimeout(() => {
       const peerInfo = this.peers.get(key);
       if (peerInfo && !peerInfo.handshakeReceived) {
-        log('warn', `Handshake timeout for peer ${key}`);
+        log(
+          'debug',
+          `Handshake timeout for peer ${key} (sent: ${peerInfo.handshakeSent}, received: ${peerInfo.handshakeReceived})`
+        );
         this.disconnectPeer(key);
       }
     }, HANDSHAKE_TIMEOUT);
@@ -166,6 +186,21 @@ export class PeerManager {
   getConnectedPeersCount(): number {
     return Array.from(this.peers.values()).filter((p) => p.handshakeReceived && p.handshakeSent)
       .length;
+  }
+
+  getPeerStatus(): {
+    total: number;
+    connected: number;
+    handshakeSent: number;
+    handshakeReceived: number;
+  } {
+    const peers = Array.from(this.peers.values());
+    return {
+      total: peers.length,
+      connected: peers.filter((p) => p.handshakeReceived && p.handshakeSent).length,
+      handshakeSent: peers.filter((p) => p.handshakeSent).length,
+      handshakeReceived: peers.filter((p) => p.handshakeReceived).length,
+    };
   }
 
   destroy(): void {

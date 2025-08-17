@@ -22,7 +22,7 @@ export const DEFAULT_TORRENT_FILE_PATH = './torrents/BigBuckBunny_124_archive.to
 export const DEFAULT_PORT = 6881;
 export const DEFAULT_NUMWANT = 80;
 export const TARGET_PEER_COUNT = 80;
-export const REFRESH_TRACKERS = 30000;
+export const REFRESH_TRACKERS = 5000;
 export const NUMBER_TRACKERS_RUN = 5;
 
 // HTTP Tracker constants
@@ -50,15 +50,15 @@ export const TCP_RECONNECT_DELAY = 10000;
 export const TCP_MAX_RECONNECTION_ATTEMPTS = 3;
 
 // Peer connection timeouts
-export const HANDSHAKE_TIMEOUT = 10000; // 10 seconds timeout for handshake
-export const PEER_CONNECTION_TIMEOUT = 15000; // 15 seconds timeout for initial connection
-export const PEER_MESSAGE_TIMEOUT = 30000; // 30 seconds timeout for peer messages
+export const HANDSHAKE_TIMEOUT = 5000;
+export const PEER_CONNECTION_TIMEOUT = 8000;
+export const PEER_MESSAGE_TIMEOUT = 30000;
 
 // Piece management constants
-export const PIECE_BLOCK_SIZE = 16384; // 16KB standard block size
-export const MAX_PENDING_REQUESTS = 5; // Maximum number of pending piece requests per peer
-export const PIECE_TIMEOUT = 30000; // 30 seconds timeout for piece requests
-export const MAX_PIECE_SIZE = 2 * ONE_MB; // Maximum piece size (2MB)
+export const PIECE_BLOCK_SIZE = 16384;
+export const MAX_PENDING_REQUESTS = 5;
+export const PIECE_TIMEOUT = 30000;
+export const MAX_PIECE_SIZE = 2 * ONE_MB;
 
 // Download/Upload constants
 export const DEFAULT_DOWNLOAD_PATH = './downloads';
@@ -66,7 +66,8 @@ export const MAX_CONCURRENT_DOWNLOADS = 10;
 export const PIECE_HASH_CHECK_ENABLED = true;
 
 // Peer behavior constants
-export const OPTIMISTIC_UNCHOKE_INTERVAL = 30000; // 30 seconds
-export const REGULAR_UNCHOKE_INTERVAL = 10000; // 10 seconds
+export const OPTIMISTIC_UNCHOKE_INTERVAL = 30000;
+export const REGULAR_UNCHOKE_INTERVAL = 10000;
 export const MAX_UNCHOKED_PEERS = 4;
-export const INTERESTED_TIMEOUT = 60000; // 1 minute
+export const INTERESTED_TIMEOUT = 60000;
+export const MIN_CONNECTED_PEERS = 5;

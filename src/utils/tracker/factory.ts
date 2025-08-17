@@ -21,9 +21,7 @@ export function createTrackerInfo(tracker: Tracker): TrackerInfo {
   return {
     url: tracker.url,
     protocol: tracker.protocol,
-    failures: 0,
     event: undefined,
-    lastSuccess: undefined,
   };
 }
 

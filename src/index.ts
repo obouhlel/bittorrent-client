@@ -1,6 +1,10 @@
 import '~/env';
 import { log } from '~/utils/system/logging';
-import { CLIENT_VERSION, DEFAULT_TORRENT_FILE_PATH } from '~/utils/system/constants';
+import {
+  CLIENT_VERSION,
+  DEFAULT_TORRENT_FILE_PATH,
+  MIN_CONNECTED_PEERS,
+} from '~/utils/system/constants';
 import { TorrentMetadata } from './models/torrents/metadata';
 import { decodeTorrent } from './utils/torrent/bencode';
 import { TrackerManager } from './models/trackers/tracker-manager';
@@ -51,9 +55,7 @@ async function main(path: string) {
   log('info', 'Discovering peers from some trackers...');
   const initialPeers = await trackers.discoverPeers();
   log('pass', `Discovered ${initialPeers.length} unique peers`);
-  const trackerStatus = trackers.getTrackersStatus();
-  const successfulTrackers = trackerStatus.filter((t) => t.lastSuccess).length;
-  log('info', `${successfulTrackers} trackers responded`);
+  log('info', 'Trackers discovery completed');
   trackers.startAutoRefresh();
   log('info', 'Started auto-refresh for peer discovery');
   // Peer manager
@@ -64,13 +66,38 @@ async function main(path: string) {
 
   // Start download process
   log('info', 'Starting download process...');
-  const downloadInterval = setInterval(() => {
+  let lastPeerDiscovery = Date.now();
+
+  const downloadInterval = setInterval(async () => {
     pieceManager.cleanupExpiredRequests();
     const stats = pieceManager.getStats();
+    const connectedPeers = peerManager.getConnectedPeersCount();
+
+    const peerStatus = peerManager.getPeerStatus();
     log(
       'info',
       `Download progress: ${stats.downloadProgress.toFixed(2)}% (${stats.completedPieces}/${stats.totalPieces} pieces, ${stats.pendingRequests} pending requests)`
     );
+    log(
+      'debug',
+      `Peer status: ${peerStatus.connected}/${peerStatus.total} connected (sent: ${peerStatus.handshakeSent}, received: ${peerStatus.handshakeReceived})`
+    );
+
+    // Check if we need more peers
+    const now = Date.now();
+    if (connectedPeers < MIN_CONNECTED_PEERS && now - lastPeerDiscovery > 30000) {
+      log('info', `Only ${connectedPeers} peers connected, discovering more...`);
+      try {
+        const newPeers = await trackers.discoverPeers();
+        if (newPeers.length > 0) {
+          await peerManager.connectToPeers(newPeers);
+          log('info', `Connected to ${peerManager.getConnectedPeersCount()} total peers`);
+        }
+        lastPeerDiscovery = now;
+      } catch (error) {
+        log('warn', `Failed to discover more peers: ${error}`);
+      }
+    }
 
     if (stats.downloadProgress >= 100) {
       clearInterval(downloadInterval);
