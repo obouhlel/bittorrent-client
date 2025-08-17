@@ -1,9 +1,10 @@
 import '~/env';
 import { log } from '~/utils/system/logging';
-import { CLIENT_VERSION, DEFAULT_TORRENT_FILE_PATH, ONE_MB } from '~/utils/system/constants';
+import { CLIENT_VERSION, DEFAULT_TORRENT_FILE_PATH } from '~/utils/system/constants';
 import { TorrentMetadata } from './models/torrents/metadata';
 import { decodeTorrent } from './utils/torrent/bencode';
 import { TrackerManager } from './models/trackers/tracker-manager';
+import { PeerManager } from './models/peer/peer-manager';
 
 // Application startup
 const torrentFilePath = Bun.env.TORRENT_FILE_PATH || DEFAULT_TORRENT_FILE_PATH;
@@ -32,20 +33,24 @@ async function main(path: string) {
   log('info', `Found ${torrent.getTrackers().length} trackers`);
   // Tracker manager
   const trackers = new TrackerManager(torrent);
-  log('info', 'Discovering peers from all trackers...');
+  log('info', 'Discovering peers from some trackers...');
   const initialPeers = await trackers.discoverPeers();
   log('pass', `Discovered ${initialPeers.length} unique peers`);
   const trackerStatus = trackers.getTrackersStatus();
   const successfulTrackers = trackerStatus.filter((t) => t.lastSuccess).length;
-  log('info', `${successfulTrackers}/${trackerStatus.length} trackers responded`);
+  log('info', `${successfulTrackers} trackers responded`);
   trackers.startAutoRefresh();
   log('info', 'Started auto-refresh for peer discovery');
-  trackers.updateStats({
-    uploaded: 0,
-    downloaded: ONE_MB,
-    left: torrent.totalSize - ONE_MB,
-  });
+  // Peer manager
+  const peerManager = new PeerManager(torrent);
+  log('info', 'Connecting to peers...');
+  await peerManager.connectToPeers(initialPeers);
+  log('pass', `Successfully connected to ${peerManager.getConnectedPeersCount()} peers`);
+
   await new Promise((resolve) => setTimeout(resolve, 5000));
   log('info', `Total peers discovered: ${trackers.getTotalPeersCount()}`);
+
+  // Cleanup
+  peerManager.destroy();
   await trackers.destroy();
 }

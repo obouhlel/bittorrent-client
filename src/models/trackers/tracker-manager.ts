@@ -3,13 +3,9 @@ import type { TorrentMetadata } from '~/models/torrents/metadata';
 import type { HTTPTracker } from './http/http-tracker';
 import type { ITrackerManager } from './tracker-manager.interface';
 import { UDPTracker } from './udp/udp-tracker';
-import { NUMBER_TRACKERS_RUN, REFRESH_TRACKERS } from '~/utils/system/constants';
-import {
-  createTrackerInfo,
-  initTrackerInstance,
-  sortTrackersBySuccess,
-  announceToTrackers,
-} from '~/utils/tracker/tracker';
+import { NUMBER_TRACKERS_RUN, REFRESH_TRACKERS, TARGET_PEER_COUNT } from '~/utils/system/constants';
+import { createTrackerInfo, initTrackerInstance } from '~/utils/tracker/factory';
+import { announceToTrackers, discoverPeersProgressively } from '~/utils/tracker/discovery';
 
 export class TrackerManager implements ITrackerManager {
   private trackers: TrackerInfo[];
@@ -46,22 +42,22 @@ export class TrackerManager implements ITrackerManager {
   }
 
   async discoverPeers(): Promise<Peer[]> {
-    return announceToTrackers(
+    return discoverPeersProgressively(
       this.trackers,
       this.instances,
       this.stats,
       this.metadata,
       'started',
-      this.peers
+      this.peers,
+      TARGET_PEER_COUNT
     );
   }
 
   async refreshPeers(): Promise<Peer[]> {
-    const sortedTrackers = sortTrackersBySuccess(this.trackers);
-    const bestTrackers = sortedTrackers.slice(0, NUMBER_TRACKERS_RUN);
+    const selectTrackers = this.trackers.slice(0, NUMBER_TRACKERS_RUN);
 
     return announceToTrackers(
-      bestTrackers,
+      selectTrackers,
       this.instances,
       this.stats,
       this.metadata,

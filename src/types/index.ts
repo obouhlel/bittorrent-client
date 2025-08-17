@@ -3,3 +3,5 @@ export * from './network';
 export * from './bencode';
 export * from './tracker';
 export * from './validation';
+export * from './peer-messages';
+export * from './peer-manager';

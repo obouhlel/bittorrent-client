@@ -1,6 +1,6 @@
 // Network and buffer constants
 export const ONE_MB = 1024 * 1024;
-export const CONNECTION_TIMEOUT = 30000;
+export const CONNECTION_TIMEOUT = 10000;
 
 // BitTorrent protocol constants
 export const PROTOCOL_NAME = 'BitTorrent protocol';
@@ -21,11 +21,12 @@ export const DEFAULT_TORRENT_FILE_PATH = './torrents/BigBuckBunny_124_archive.to
 // Tracker constants
 export const DEFAULT_PORT = 6881;
 export const DEFAULT_NUMWANT = 80;
-export const REFRESH_TRACKERS = 60000;
+export const TARGET_PEER_COUNT = 80;
+export const REFRESH_TRACKERS = 30000;
 export const NUMBER_TRACKERS_RUN = 5;
 
 // HTTP Tracker constants
-export const HTTP_TIMEOUT = 30000;
+export const HTTP_TIMEOUT = 10000;
 
 // UDP Tracker constants
 export const UDP_MAGIC_CONSTANT = 0x41727101980n;
@@ -42,3 +43,8 @@ export enum UDPEvent {
   STARTED = 2,
   STOPPED = 3,
 }
+
+// TCP
+export const TCP_TIMEOUT = 30000;
+export const TCP_RECONNECT_DELAY = 10000;
+export const TCP_MAX_RECONNECTION_ATTEMPTS = 3;
