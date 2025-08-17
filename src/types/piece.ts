@@ -44,7 +44,6 @@ export interface PieceSelector {
   selectPieces(
     availablePieces: Set<number>,
     peerPieces: Set<number>,
-    completedPieces: Set<number>,
-    maxSelections: number
+    completedPieces: Set<number>
   ): number[];
 }

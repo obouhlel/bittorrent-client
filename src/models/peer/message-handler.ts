@@ -5,6 +5,7 @@ import { buildRequest, buildUnchoke, buildInterested } from '~/utils/protocol/me
 import { log } from '~/utils/system/logging';
 import { MAX_REQUESTS_PER_PEER } from '~/config';
 import { PeerOptimizedSelector } from '~/models/piece/selection-strategy';
+import { requestPiecesFromPeer } from '~/utils/storage/piece-request-utils';
 
 export class MessageHandler {
   private handlers: Map<MessageType, MessageHandlerFunction>;
@@ -141,37 +142,18 @@ export class MessageHandler {
   }
 
   private startRequestingPieces(key: string, peerInfo: PeerConnectionInfo): void {
-    if (!peerInfo.pieceManager || !peerInfo.pieces || peerInfo.peerChoking) return;
-
     const currentRequests = this.peerActiveRequests.get(key) || 0;
-    const requestsToMake = MAX_REQUESTS_PER_PEER - currentRequests;
 
-    if (requestsToMake <= 0) return;
-
-    const availablePieces = peerInfo.pieceManager.getAvailablePieces();
-    const completedPieces = peerInfo.pieceManager.getCompletedPieces();
-
-    const maxPiecesToSelect = 1;
-    const piecesToRequest = this.pieceSelector.selectPieces(
-      availablePieces,
-      peerInfo.pieces,
-      completedPieces,
-      maxPiecesToSelect
-    );
-
-    let requestsMade = 0;
-
-    for (const pieceIndex of piecesToRequest) {
-      if (requestsMade >= requestsToMake) break;
-
-      while (requestsMade < requestsToMake) {
-        const block = peerInfo.pieceManager.getNextBlockToRequest(pieceIndex);
-        if (!block) break;
-
-        this.requestBlock(peerInfo, block.index, block.begin, block.length, key);
-        requestsMade++;
-      }
-    }
+    requestPiecesFromPeer({
+      peerInfo,
+      peerId: key,
+      currentRequests,
+      maxRequests: MAX_REQUESTS_PER_PEER,
+      pieceSelector: this.pieceSelector,
+      onRequestBlock: (index, begin, length) => {
+        this.requestBlock(peerInfo, index, begin, length, key);
+      },
+    });
   }
 
   private continueRequestingPieces(key: string, peerInfo: PeerConnectionInfo): void {

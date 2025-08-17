@@ -4,8 +4,7 @@ export class PeerOptimizedSelector implements PieceSelector {
   selectPieces(
     availablePieces: Set<number>,
     peerPieces: Set<number>,
-    completedPieces: Set<number>,
-    maxSelections: number
+    completedPieces: Set<number>
   ): number[] {
     const candidates: number[] = [];
 
@@ -25,7 +24,7 @@ export class PeerOptimizedSelector implements PieceSelector {
       }
     }
 
-    return candidates.slice(0, maxSelections);
+    return candidates;
   }
 }
 
@@ -33,8 +32,7 @@ export class RandomSelector implements PieceSelector {
   selectPieces(
     availablePieces: Set<number>,
     peerPieces: Set<number>,
-    completedPieces: Set<number>,
-    maxSelections: number
+    completedPieces: Set<number>
   ): number[] {
     const candidates: number[] = [];
 
@@ -54,7 +52,7 @@ export class RandomSelector implements PieceSelector {
       }
     }
 
-    return candidates.slice(0, maxSelections);
+    return candidates;
   }
 }
 
@@ -62,15 +60,13 @@ export class SequentialSelector implements PieceSelector {
   selectPieces(
     availablePieces: Set<number>,
     peerPieces: Set<number>,
-    completedPieces: Set<number>,
-    maxSelections: number
+    completedPieces: Set<number>
   ): number[] {
     const candidates: number[] = [];
 
     for (const pieceIndex of Array.from(peerPieces).sort((a, b) => a - b)) {
       if (availablePieces.has(pieceIndex) && !completedPieces.has(pieceIndex)) {
         candidates.push(pieceIndex);
-        if (candidates.length >= maxSelections) break;
       }
     }
 
