@@ -6,3 +6,4 @@ export * from './validation';
 export * from './peer-messages';
 export * from './peer-manager';
 export * from './piece';
+export * from './bittorrent-config';

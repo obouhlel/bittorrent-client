@@ -71,3 +71,6 @@ export const REGULAR_UNCHOKE_INTERVAL = 10000;
 export const MAX_UNCHOKED_PEERS = 4;
 export const INTERESTED_TIMEOUT = 60000;
 export const MIN_CONNECTED_PEERS = 5;
+
+// Download management
+export const DOWNLOAD_REFRESH_INTERVAL = 2000;

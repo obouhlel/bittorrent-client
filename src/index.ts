@@ -1,15 +1,7 @@
 import '~/env';
 import { log } from '~/utils/system/logging';
-import {
-  CLIENT_VERSION,
-  DEFAULT_TORRENT_FILE_PATH,
-  MIN_CONNECTED_PEERS,
-} from '~/utils/system/constants';
-import { TorrentMetadata } from './models/torrents/metadata';
-import { decodeTorrent } from './utils/torrent/bencode';
-import { TrackerManager } from './models/trackers/tracker-manager';
-import { PeerManager } from './models/peer/peer-manager';
-import { PieceManager } from './models/piece/piece-manager';
+import { CLIENT_VERSION, DEFAULT_TORRENT_FILE_PATH } from '~/utils/system/constants';
+import { BitTorrent } from './models/bittorrent';
 
 // Application startup
 const torrentFilePath = Bun.env.TORRENT_FILE_PATH || DEFAULT_TORRENT_FILE_PATH;
@@ -25,107 +17,21 @@ main(torrentFilePath)
     process.exit(0);
   });
 
-async function finishDownload(pieceManager: PieceManager): Promise<void> {
-  try {
-    await pieceManager.assembleCompleteFile();
-    log('pass', 'File successfully assembled!');
-  } catch (error) {
-    log('fail', `Failed to assemble file: ${error}`);
-  }
-}
-
 async function main(path: string) {
-  // Parse Torrent
-  const data = Buffer.from(await Bun.file(path).arrayBuffer());
-  const torrentFile = decodeTorrent(data);
-  const torrent = new TorrentMetadata(torrentFile, data);
-  log('info', `Name: ${torrent.name}`);
-  log('info', `Hash: ${torrent.infoHash}`);
-  log('info', `Number of pieces: ${torrent.pieceCount}`);
-  log('info', `Size of pieces: ${torrent.pieceLength / 1000} KB`);
-  log('info', `Total length: ${(torrent.totalSize / 1000000).toPrecision(5)} MB`);
-  log('info', `Found ${torrent.getTrackers().length} trackers`);
+  try {
+    const client = await BitTorrent.fromFile(path);
+    const info = client.getTorrentInfo();
 
-  // Piece manager
-  const pieceManager = new PieceManager(torrent);
-  log('info', `Initialized piece manager with ${pieceManager.getTotalPieces()} pieces`);
+    log('info', `Name: ${info.name}`);
+    log('info', `Hash: ${info.infoHash}`);
+    log('info', `Number of pieces: ${info.pieceCount}`);
+    log('info', `Size of pieces: ${info.pieceLength / 1000} KB`);
+    log('info', `Total length: ${(info.totalSize / 1000000).toPrecision(5)} MB`);
+    log('info', `Found ${info.trackersCount} trackers`);
 
-  // Tracker manager
-  const trackers = new TrackerManager(torrent);
-  log('info', 'Discovering peers from some trackers...');
-  const initialPeers = await trackers.discoverPeers();
-  log('pass', `Discovered ${initialPeers.length} unique peers`);
-  log('info', 'Trackers discovery completed');
-  trackers.startAutoRefresh();
-  log('info', 'Started auto-refresh for peer discovery');
-  // Peer manager
-  const peerManager = new PeerManager(torrent, pieceManager);
-  log('info', 'Connecting to peers...');
-  await peerManager.connectToPeers(initialPeers);
-  log('pass', `Successfully connected to ${peerManager.getConnectedPeersCount()} peers`);
-
-  // Start download process
-  log('info', 'Starting download process...');
-  let lastPeerDiscovery = Date.now();
-
-  const downloadInterval = setInterval(async () => {
-    pieceManager.cleanupExpiredRequests();
-    const stats = pieceManager.getStats();
-    const connectedPeers = peerManager.getConnectedPeersCount();
-
-    const peerStatus = peerManager.getPeerStatus();
-    log(
-      'info',
-      `Download progress: ${stats.downloadProgress.toFixed(2)}% (${stats.completedPieces}/${stats.totalPieces} pieces, ${stats.pendingRequests} pending requests)`
-    );
-    log(
-      'debug',
-      `Peer status: ${peerStatus.connected}/${peerStatus.total} connected (sent: ${peerStatus.handshakeSent}, received: ${peerStatus.handshakeReceived})`
-    );
-
-    // Check if we need more peers
-    const now = Date.now();
-    if (connectedPeers < MIN_CONNECTED_PEERS && now - lastPeerDiscovery > 30000) {
-      log('info', `Only ${connectedPeers} peers connected, discovering more...`);
-      try {
-        const newPeers = await trackers.discoverPeers();
-        if (newPeers.length > 0) {
-          await peerManager.connectToPeers(newPeers);
-          log('info', `Connected to ${peerManager.getConnectedPeersCount()} total peers`);
-        }
-        lastPeerDiscovery = now;
-      } catch (error) {
-        log('warn', `Failed to discover more peers: ${error}`);
-      }
-    }
-
-    if (stats.downloadProgress >= 100) {
-      clearInterval(downloadInterval);
-      log('pass', 'Download completed!');
-      finishDownload(pieceManager);
-    }
-  }, 2000);
-
-  // Wait for download to complete or timeout
-  await new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      clearInterval(downloadInterval);
-      log('info', 'Download timeout reached');
-      resolve(undefined);
-    }, 300000); // 5 minutes timeout
-
-    const checkCompletion = setInterval(() => {
-      if (pieceManager.getStats().downloadProgress >= 100) {
-        clearTimeout(timeout);
-        clearInterval(checkCompletion);
-        resolve(undefined);
-      }
-    }, 1000);
-  });
-
-  log('info', `Total peers discovered: ${trackers.getTotalPeersCount()}`);
-
-  // Cleanup
-  peerManager.destroy();
-  await trackers.destroy();
+    await client.start();
+  } catch (error) {
+    log('fail', `Failed to download: ${error}`);
+    throw error;
+  }
 }
