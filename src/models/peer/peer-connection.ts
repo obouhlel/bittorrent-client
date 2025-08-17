@@ -79,22 +79,33 @@ export class PeerConnection {
   }
 
   private parseMessages(): void {
-    while (this.buffer.length >= 4) {
-      const messageLength =
-        ((this.buffer[0] ?? 0) << 24) |
-        ((this.buffer[1] ?? 0) << 16) |
-        ((this.buffer[2] ?? 0) << 8) |
-        (this.buffer[3] ?? 0);
-
-      const totalLength = 4 + messageLength;
-      if (this.buffer.length < totalLength) {
-        break;
+    while (this.buffer.length > 0) {
+      if (this.buffer.length >= 68 && this.buffer[0] === 19) {
+        const handshake = this.buffer.slice(0, 68);
+        this.onMessage(handshake);
+        this.buffer = this.buffer.slice(68);
+        continue;
       }
 
-      const message = this.buffer.slice(0, totalLength);
-      this.onMessage(message);
+      if (this.buffer.length >= 4) {
+        const messageLength =
+          ((this.buffer[0] ?? 0) << 24) |
+          ((this.buffer[1] ?? 0) << 16) |
+          ((this.buffer[2] ?? 0) << 8) |
+          (this.buffer[3] ?? 0);
 
-      this.buffer = this.buffer.slice(totalLength);
+        const totalLength = 4 + messageLength;
+        if (this.buffer.length < totalLength) {
+          break;
+        }
+
+        const message = this.buffer.slice(0, totalLength);
+        this.onMessage(message);
+
+        this.buffer = this.buffer.slice(totalLength);
+      } else {
+        break;
+      }
     }
   }
 }

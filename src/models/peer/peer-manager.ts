@@ -96,15 +96,20 @@ export class PeerManager {
     }
 
     try {
-      const handshakeMessage = buildHandshake(
-        new Uint8Array(Buffer.from(this.metadata.infoHash, 'hex')),
-        new Uint8Array(Buffer.from(this.metadata.peerId))
+      const infoHashBuffer = new Uint8Array(Buffer.from(this.metadata.infoHash, 'hex'));
+      const peerIdBuffer = new Uint8Array(Buffer.from(this.metadata.peerId));
+
+      log(
+        'debug',
+        `Building handshake for ${key} - InfoHash: ${this.metadata.infoHash}, PeerID: ${Buffer.from(this.metadata.peerId).toString('hex')}`
       );
+
+      const handshakeMessage = buildHandshake(infoHashBuffer, peerIdBuffer);
 
       peerInfo.connection.send(handshakeMessage);
       peerInfo.handshakeSent = true;
 
-      log('debug', `Sent handshake to ${key}`);
+      log('debug', `Sent handshake to ${key} (${handshakeMessage.length} bytes)`);
 
       if (peerInfo.handshakeReceived) {
         this.messageHandler.sendInterestedMessage(peerInfo);
@@ -122,7 +127,9 @@ export class PeerManager {
     }
 
     const receivedHash = Buffer.from(handshake.infoHash).toString('hex');
-    const expectedHash = Buffer.from(this.metadata.infoHash).toString('hex');
+    const expectedHash = this.metadata.infoHash;
+
+    log('debug', `Hash comparison - Received: ${receivedHash}, Expected: ${expectedHash}`);
 
     if (receivedHash !== expectedHash) {
       log('fail', `Info hash mismatch from ${key}`);

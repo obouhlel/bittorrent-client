@@ -50,7 +50,7 @@ export const TCP_RECONNECT_DELAY = 10000;
 export const TCP_MAX_RECONNECTION_ATTEMPTS = 3;
 
 // Peer connection timeouts
-export const HANDSHAKE_TIMEOUT = 5000;
+export const HANDSHAKE_TIMEOUT = 15000;
 export const PEER_CONNECTION_TIMEOUT = 8000;
 export const PEER_MESSAGE_TIMEOUT = 30000;
 
