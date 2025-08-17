@@ -1,5 +1,5 @@
-import type { PeerMessage, HandshakeMessage } from '~/types/peer-messages';
-import { MessageType } from '~/types/peer-messages';
+import type { PeerMessage, HandshakeMessage } from '~/types';
+import { MessageType } from '~/types';
 import { parseHandshake } from './handshake';
 
 type MessageParser = (

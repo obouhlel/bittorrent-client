@@ -1,5 +1,5 @@
 import type { TorrentMetadata } from '~/models/torrents/metadata';
-import type { AnnounceParams, AnnounceResponse } from '~/types/tracker';
+import type { AnnounceParams, AnnounceResponse } from '~/types';
 import { getClientPeerId } from '~/utils/protocol/peer-id';
 import * as HTTPProtocol from '~/utils/tracker/http-protocol';
 import { HTTPClient } from './http-client';

@@ -1,4 +1,4 @@
-import type { PeerConnectionInfo } from './peer-manager';
+import type { PeerConnectionInfo } from './peer-manager.type';
 
 export type MessageHandlerFunction = (
   key: string,

@@ -1,4 +1,4 @@
-import type { PeerConnectionInfo } from './peer-manager';
+import type { PeerConnectionInfo } from './peer-manager.type';
 import type { PeerOptimizedSelector } from '~/models/piece/selection-strategy';
 
 export interface RequestPiecesOptions {

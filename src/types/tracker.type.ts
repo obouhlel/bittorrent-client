@@ -1,4 +1,4 @@
-import type { Peer } from './network';
+import type { Peer } from './network.type';
 
 export type TrackerEvent = 'started' | 'stopped' | 'completed' | undefined;
 

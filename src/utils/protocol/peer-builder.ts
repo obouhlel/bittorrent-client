@@ -1,6 +1,6 @@
 import { PeerConnection } from '~/models/peer/peer-connection';
 import type { Peer } from '~/types';
-import type { HandshakeMessage, PeerMessage } from '~/types/peer-messages';
+import type { HandshakeMessage, PeerMessage } from '~/types';
 import { log } from '~/utils/system/logging';
 import { createMessageHandler } from './message-parser';
 

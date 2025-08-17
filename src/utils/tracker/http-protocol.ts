@@ -1,6 +1,6 @@
 import type { Peer } from '~/types';
 import type { BencodeDict } from '~/types';
-import type { AnnounceParams, AnnounceResponse } from '~/types/tracker';
+import type { AnnounceParams, AnnounceResponse } from '~/types';
 import { decode } from '~/utils/torrent/bencode';
 
 export function encodeInfoHash(infoHash: string): string {

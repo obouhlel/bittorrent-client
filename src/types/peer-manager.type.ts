@@ -1,4 +1,4 @@
-import type { Peer } from '~/types/network';
+import type { Peer } from '~/types';
 import { PeerConnection } from '~/models/peer/peer-connection';
 import type { PieceManager } from '~/models/piece/piece-manager';
 

@@ -1,4 +1,4 @@
-import { MessageType } from '~/types/peer-messages';
+import { MessageType } from '~/types';
 import {
   PROTOCOL_NAME,
   PROTOCOL_NAME_LENGTH,

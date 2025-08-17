@@ -1,5 +1,5 @@
 import type { PeerMessage, PeerConnectionInfo, MessageHandlerFunction } from '~/types';
-import { MessageType } from '~/types/peer-messages';
+import { MessageType } from '~/types';
 import { parseBitfield } from '~/utils/protocol/bitfield';
 import { buildRequest, buildUnchoke, buildInterested } from '~/utils/protocol/message-builder';
 import { log } from '~/utils/system/logging';

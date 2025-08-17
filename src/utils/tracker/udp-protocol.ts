@@ -1,5 +1,5 @@
 import type { Peer } from '~/types';
-import type { AnnounceParams, AnnounceResponse } from '~/types/tracker';
+import type { AnnounceParams, AnnounceResponse } from '~/types';
 import crypto from 'node:crypto';
 import {
   UDP_MAGIC_CONSTANT,
