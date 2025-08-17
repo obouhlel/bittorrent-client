@@ -1,6 +1,7 @@
 import type { PeerMessage, PeerConnectionInfo, MessageHandlerFunction } from '~/types';
 import { MessageType } from '~/types/peer-messages';
 import { parseBitfield } from '~/utils/protocol/bitfield';
+import { buildRequest, buildUnchoke, buildInterested } from '~/utils/protocol/message-builder';
 import { log } from '~/utils/system/logging';
 
 export class MessageHandler {
@@ -156,6 +157,8 @@ export class MessageHandler {
     peerId: string
   ): void {
     if (peerInfo.pieceManager?.requestBlock(index, begin, length, peerId)) {
+      const requestMessage = buildRequest(index, begin, length);
+      peerInfo.connection.send(requestMessage);
       log('debug', `Requesting block: piece ${index}, begin ${begin}, length ${length}`);
     }
   }
@@ -176,11 +179,15 @@ export class MessageHandler {
   }
 
   private sendUnchokeMessage(peerInfo: PeerConnectionInfo): void {
+    const unchokeMessage = buildUnchoke();
+    peerInfo.connection.send(unchokeMessage);
     peerInfo.amChoking = false;
     log('debug', 'Sent unchoke message');
   }
 
   sendInterestedMessage(peerInfo: PeerConnectionInfo): void {
+    const interestedMessage = buildInterested();
+    peerInfo.connection.send(interestedMessage);
     peerInfo.amInterested = true;
     log('debug', 'Sent interested message');
   }
