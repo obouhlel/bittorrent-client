@@ -37,3 +37,14 @@ export interface PieceRequestInfo {
   begin: number;
   length: number;
 }
+
+export type PieceSelectionStrategy = 'sequential' | 'rarest-first' | 'random' | 'peer-optimized';
+
+export interface PieceSelector {
+  selectPieces(
+    availablePieces: Set<number>,
+    peerPieces: Set<number>,
+    completedPieces: Set<number>,
+    maxSelections: number
+  ): number[];
+}

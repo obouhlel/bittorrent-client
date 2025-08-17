@@ -8,7 +8,8 @@ import {
   updateBlockProgress,
 } from '~/utils/storage/block-utils';
 import { verifyPieceHash } from '~/utils/storage/hash-verification';
-import { savePieceToFile, assembleCompleteFile } from '~/utils/storage/file-operations';
+import { savePieceToFile } from '~/utils/storage/file-operations';
+import { assembleMultiFile, assembleSingleFile } from '~/utils/storage/multifile-assembler';
 import { RequestManager } from '~/models/piece/request-manager';
 
 export class PieceManager {
@@ -192,7 +193,18 @@ export class PieceManager {
       throw new Error('Cannot assemble file: not all pieces are downloaded');
     }
 
-    const fileName = this.torrentMetadata.name || 'downloaded_file';
-    await assembleCompleteFile(this.totalPieces, this.pieceLength, this.downloadPath, fileName);
+    if (this.torrentMetadata.isMultiFile) {
+      const files = this.torrentMetadata.getFiles();
+      await assembleMultiFile(
+        files,
+        this.totalPieces,
+        this.pieceLength,
+        this.lastPieceLength,
+        this.downloadPath
+      );
+    } else {
+      const fileName = this.torrentMetadata.name || 'downloaded_file';
+      await assembleSingleFile(this.totalPieces, this.pieceLength, this.downloadPath, fileName);
+    }
   }
 }

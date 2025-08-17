@@ -26,6 +26,12 @@ export interface Files {
   length: number;
 }
 
+export interface FileRange {
+  file: Files;
+  startByte: number;
+  endByte: number;
+}
+
 export interface FileInfo {
   length: number;
   path: string[];

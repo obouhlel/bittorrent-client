@@ -3,9 +3,13 @@ import { MessageType } from '~/types/peer-messages';
 import { parseBitfield } from '~/utils/protocol/bitfield';
 import { buildRequest, buildUnchoke, buildInterested } from '~/utils/protocol/message-builder';
 import { log } from '~/utils/system/logging';
+import { MAX_REQUESTS_PER_PEER } from '~/config';
+import { PeerOptimizedSelector } from '~/models/piece/selection-strategy';
 
 export class MessageHandler {
   private handlers: Map<MessageType, MessageHandlerFunction>;
+  private pieceSelector = new PeerOptimizedSelector();
+  private peerActiveRequests = new Map<string, number>();
 
   constructor() {
     this.handlers = new Map([
@@ -103,6 +107,11 @@ export class MessageHandler {
       const { index, begin, block } = message.payload;
       log('debug', `Received piece ${index} from ${key} (offset: ${begin}, size: ${block.length})`);
 
+      const current = this.peerActiveRequests.get(key) || 0;
+      if (current > 0) {
+        this.peerActiveRequests.set(key, current - 1);
+      }
+
       if (peerInfo.pieceManager) {
         const success = await peerInfo.pieceManager.receiveBlock(index, begin, block, key);
         if (success) {
@@ -132,13 +141,35 @@ export class MessageHandler {
   }
 
   private startRequestingPieces(key: string, peerInfo: PeerConnectionInfo): void {
-    if (!peerInfo.pieceManager || !peerInfo.pieces) return;
+    if (!peerInfo.pieceManager || !peerInfo.pieces || peerInfo.peerChoking) return;
 
-    const pieceIndex = peerInfo.pieceManager.getNextPieceToRequest(peerInfo.pieces);
-    if (pieceIndex !== null) {
-      const block = peerInfo.pieceManager.getNextBlockToRequest(pieceIndex);
-      if (block) {
+    const currentRequests = this.peerActiveRequests.get(key) || 0;
+    const requestsToMake = MAX_REQUESTS_PER_PEER - currentRequests;
+
+    if (requestsToMake <= 0) return;
+
+    const availablePieces = peerInfo.pieceManager.getAvailablePieces();
+    const completedPieces = peerInfo.pieceManager.getCompletedPieces();
+
+    const maxPiecesToSelect = 1;
+    const piecesToRequest = this.pieceSelector.selectPieces(
+      availablePieces,
+      peerInfo.pieces,
+      completedPieces,
+      maxPiecesToSelect
+    );
+
+    let requestsMade = 0;
+
+    for (const pieceIndex of piecesToRequest) {
+      if (requestsMade >= requestsToMake) break;
+
+      while (requestsMade < requestsToMake) {
+        const block = peerInfo.pieceManager.getNextBlockToRequest(pieceIndex);
+        if (!block) break;
+
         this.requestBlock(peerInfo, block.index, block.begin, block.length, key);
+        requestsMade++;
       }
     }
   }
@@ -159,6 +190,8 @@ export class MessageHandler {
     if (peerInfo.pieceManager?.requestBlock(index, begin, length, peerId)) {
       const requestMessage = buildRequest(index, begin, length);
       peerInfo.connection.send(requestMessage);
+      const current = this.peerActiveRequests.get(peerId) || 0;
+      this.peerActiveRequests.set(peerId, current + 1);
       log('debug', `Requesting block: piece ${index}, begin ${begin}, length ${length}`);
     }
   }

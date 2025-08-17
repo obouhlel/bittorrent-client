@@ -56,7 +56,8 @@ export const PEER_MESSAGE_TIMEOUT = 30000;
 
 // Piece management constants
 export const PIECE_BLOCK_SIZE = 16384;
-export const MAX_PENDING_REQUESTS = 5;
+export const MAX_PENDING_REQUESTS = 100; // Increased for better parallelism
+export const MAX_REQUESTS_PER_PEER = 32; // Enough to request a full piece (524KB / 16KB = 32 blocks)
 export const PIECE_TIMEOUT = 30000;
 export const MAX_PIECE_SIZE = 2 * ONE_MB;
 
