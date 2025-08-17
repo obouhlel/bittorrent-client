@@ -57,6 +57,10 @@ export class TorrentMetadata implements ITorrentMetadata {
     return this.torrent.info['piece length'];
   }
 
+  get pieces(): Buffer {
+    return this.torrent.info.pieces;
+  }
+
   get isMultiFile(): boolean {
     return !!this.torrent.info.files;
   }

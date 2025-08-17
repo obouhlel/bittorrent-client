@@ -1,3 +1,11 @@
+import type { PeerConnectionInfo } from './peer-manager';
+
+export type MessageHandlerFunction = (
+  key: string,
+  peerInfo: PeerConnectionInfo,
+  message: PeerMessage
+) => void;
+
 export enum MessageType {
   CHOKE = 0,
   UNCHOKE = 1,

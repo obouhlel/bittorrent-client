@@ -5,6 +5,7 @@ export interface ITorrentMetadata {
   totalSize: number;
   pieceCount: number;
   pieceLength: number;
+  pieces: Buffer;
   name: string;
   isMultiFile: boolean;
   getPieceSize(pieceIndex: number): number;

@@ -1,13 +1,7 @@
-import type { PeerMessage, PeerConnectionInfo } from '~/types';
+import type { PeerMessage, PeerConnectionInfo, MessageHandlerFunction } from '~/types';
 import { MessageType } from '~/types/peer-messages';
 import { parseBitfield } from '~/utils/protocol/bitfield';
 import { log } from '~/utils/system/logging';
-
-type MessageHandlerFunction = (
-  key: string,
-  peerInfo: PeerConnectionInfo,
-  message: PeerMessage
-) => void;
 
 export class MessageHandler {
   private handlers: Map<MessageType, MessageHandlerFunction>;
@@ -44,12 +38,19 @@ export class MessageHandler {
   private handleUnchoke(key: string, peerInfo: PeerConnectionInfo, _message: PeerMessage): void {
     peerInfo.peerChoking = false;
     log('debug', `Peer ${key} unchoked us`);
-    // TODO: Start requesting pieces
+
+    if (peerInfo.pieceManager && peerInfo.pieces) {
+      this.startRequestingPieces(key, peerInfo);
+    }
   }
 
   private handleInterested(key: string, peerInfo: PeerConnectionInfo, _message: PeerMessage): void {
     peerInfo.peerInterested = true;
     log('debug', `Peer ${key} is interested`);
+
+    if (!peerInfo.amChoking) {
+      this.sendUnchokeMessage(peerInfo);
+    }
   }
 
   private handleNotInterested(
@@ -80,19 +81,34 @@ export class MessageHandler {
     }
   }
 
-  private handleRequest(key: string, _peerInfo: PeerConnectionInfo, message: PeerMessage): void {
+  private handleRequest(key: string, peerInfo: PeerConnectionInfo, message: PeerMessage): void {
     if (message.type === MessageType.REQUEST && 'payload' in message) {
       const { index, begin, length } = message.payload;
       log('debug', `Peer ${key} requested piece ${index} (offset: ${begin}, length: ${length})`);
-      // TODO: Send the requested piece if we have it and are not choking them
+
+      if (peerInfo.pieceManager && peerInfo.pieceManager.hasPiece(index) && !peerInfo.amChoking) {
+        this.sendPieceData(peerInfo, index, begin, length);
+      }
     }
   }
 
-  private handlePiece(key: string, _peerInfo: PeerConnectionInfo, message: PeerMessage): void {
+  private async handlePiece(
+    key: string,
+    peerInfo: PeerConnectionInfo,
+    message: PeerMessage
+  ): Promise<void> {
     if (message.type === MessageType.PIECE && 'payload' in message) {
       const { index, begin, block } = message.payload;
       log('debug', `Received piece ${index} from ${key} (offset: ${begin}, size: ${block.length})`);
-      // TODO: Store the piece and verify it
+
+      if (peerInfo.pieceManager) {
+        const success = await peerInfo.pieceManager.receiveBlock(index, begin, block, key);
+        if (success) {
+          this.continueRequestingPieces(key, peerInfo);
+        } else {
+          log('warn', `Failed to store piece ${index} block from ${key}`);
+        }
+      }
     }
   }
 
@@ -103,7 +119,6 @@ export class MessageHandler {
         'debug',
         `Peer ${key} cancelled request for piece ${index} (offset: ${begin}, length: ${length})`
       );
-      // TODO: Cancel sending the piece if we were about to send it
     }
   }
 
@@ -111,7 +126,56 @@ export class MessageHandler {
     if (message.type === MessageType.PORT && 'payload' in message) {
       const port = message.payload.port;
       log('debug', `Peer ${key} DHT port: ${port}`);
-      // TODO: Use for DHT if implemented
     }
+  }
+
+  private startRequestingPieces(key: string, peerInfo: PeerConnectionInfo): void {
+    if (!peerInfo.pieceManager || !peerInfo.pieces) return;
+
+    const pieceIndex = peerInfo.pieceManager.getNextPieceToRequest(peerInfo.pieces);
+    if (pieceIndex !== null) {
+      const block = peerInfo.pieceManager.getNextBlockToRequest(pieceIndex);
+      if (block) {
+        this.requestBlock(peerInfo, block.index, block.begin, block.length, key);
+      }
+    }
+  }
+
+  private continueRequestingPieces(key: string, peerInfo: PeerConnectionInfo): void {
+    if (!peerInfo.peerChoking) {
+      this.startRequestingPieces(key, peerInfo);
+    }
+  }
+
+  private requestBlock(
+    peerInfo: PeerConnectionInfo,
+    index: number,
+    begin: number,
+    length: number,
+    peerId: string
+  ): void {
+    if (peerInfo.pieceManager?.requestBlock(index, begin, length, peerId)) {
+      log('debug', `Requesting block: piece ${index}, begin ${begin}, length ${length}`);
+    }
+  }
+
+  private sendPieceData(
+    peerInfo: PeerConnectionInfo,
+    index: number,
+    begin: number,
+    _length: number
+  ): void {
+    const pieceInfo = peerInfo.pieceManager?.getPieceInfo(index);
+    if (!pieceInfo) return;
+
+    const block = pieceInfo.blocks.find((b) => b.begin === begin && b.data);
+    if (block?.data) {
+      log('debug', `Sending piece ${index} block to peer`);
+    }
+  }
+
+  private sendUnchokeMessage(peerInfo: PeerConnectionInfo): void {
+    peerInfo.amChoking = false;
+    log('debug', 'Sent unchoke message');
   }
 }

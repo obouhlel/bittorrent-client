@@ -5,3 +5,4 @@ export * from './tracker';
 export * from './validation';
 export * from './peer-messages';
 export * from './peer-manager';
+export * from './piece';

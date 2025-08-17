@@ -1,17 +1,26 @@
 import type { Peer, PeerConnectionInfo, HandshakeMessage, PeerMessage } from '~/types';
 import type { TorrentMetadata } from '~/models/torrents/metadata';
+import type { PieceManager } from '~/models/piece/piece-manager';
 import { createPeerConnection } from '~/utils/protocol/peer-builder';
 import { buildHandshake } from '~/utils/protocol/message-builder';
 import { log } from '~/utils/system/logging';
 import { getPeerKey } from '~/utils/tracker/peer';
+import { HANDSHAKE_TIMEOUT, PEER_CONNECTION_TIMEOUT } from '~/utils/system/constants';
 import { MessageHandler } from './message-handler';
 
 export class PeerManager {
   private peers: Map<string, PeerConnectionInfo>;
   private messageHandler: MessageHandler;
+  private pieceManager: PieceManager;
+  private handshakeTimeouts: Map<string, NodeJS.Timeout>;
 
-  constructor(private metadata: TorrentMetadata) {
+  constructor(
+    private metadata: TorrentMetadata,
+    pieceManager: PieceManager
+  ) {
     this.peers = new Map<string, PeerConnectionInfo>();
+    this.handshakeTimeouts = new Map<string, NodeJS.Timeout>();
+    this.pieceManager = pieceManager;
     this.messageHandler = new MessageHandler();
   }
 
@@ -39,7 +48,12 @@ export class PeerManager {
         (message) => this.handleMessage(key, message)
       );
 
-      const connected = await connection.connect();
+      const connectPromise = connection.connect();
+      const timeoutPromise = new Promise<boolean>((_, reject) => {
+        setTimeout(() => reject(new Error('Connection timeout')), PEER_CONNECTION_TIMEOUT);
+      });
+
+      const connected = await Promise.race([connectPromise, timeoutPromise]);
       if (!connected) {
         throw new Error(`Failed to connect to ${key}`);
       }
@@ -49,9 +63,15 @@ export class PeerManager {
         peer,
         handshakeSent: false,
         handshakeReceived: false,
+        peerChoking: true,
+        peerInterested: false,
+        amChoking: true,
+        amInterested: false,
+        pieceManager: this.pieceManager,
       });
 
       await this.sendHandshake(key);
+      this.startHandshakeTimeout(key);
     } catch (error) {
       log('fail', `Failed to connect to peer (${key}): ${error}`);
       throw error;
@@ -96,6 +116,7 @@ export class PeerManager {
     }
 
     peerInfo.handshakeReceived = true;
+    this.clearHandshakeTimeout(key);
     log('pass', `Handshake received from ${key}`);
 
     if (!peerInfo.handshakeSent) {
@@ -117,7 +138,28 @@ export class PeerManager {
     if (peerInfo) {
       peerInfo.connection.close();
       this.peers.delete(key);
+      this.clearHandshakeTimeout(key);
       log('debug', `Disconnected from peer ${key}`);
+    }
+  }
+
+  private startHandshakeTimeout(key: string): void {
+    const timeout = setTimeout(() => {
+      const peerInfo = this.peers.get(key);
+      if (peerInfo && !peerInfo.handshakeReceived) {
+        log('warn', `Handshake timeout for peer ${key}`);
+        this.disconnectPeer(key);
+      }
+    }, HANDSHAKE_TIMEOUT);
+
+    this.handshakeTimeouts.set(key, timeout);
+  }
+
+  private clearHandshakeTimeout(key: string): void {
+    const timeout = this.handshakeTimeouts.get(key);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.handshakeTimeouts.delete(key);
     }
   }
 
@@ -127,10 +169,12 @@ export class PeerManager {
   }
 
   destroy(): void {
-    for (const [_key, peerInfo] of this.peers) {
+    for (const [key, peerInfo] of this.peers) {
       peerInfo.connection.close();
+      this.clearHandshakeTimeout(key);
     }
     this.peers.clear();
+    this.handshakeTimeouts.clear();
     log('info', 'Peer manager destroyed');
   }
 }
