@@ -1,272 +1,424 @@
-# bittorrent-client
+# BitTorrent Client Implementation
 
 ![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 
-A BitTorrent client implementation supporting both HTTP and UDP trackers.
+Un client BitTorrent complet implémenté en TypeScript avec Bun, supportant les protocoles HTTP et UDP pour la communication avec les trackers, ainsi que l'intégralité du protocole peer-to-peer BitTorrent.
+
+## Table des matières
+
+- [Installation](#installation)
+- [Utilisation](#utilisation)
+- [Architecture du projet](#architecture-du-projet)
+- [Protocole BitTorrent - Guide complet](#protocole-bittorrent---guide-complet)
+- [Structure du code](#structure-du-code)
+- [Tests](#tests)
 
 ## Installation
 
-Need to install bun before at this [link](https://bun.com/docs/installation)
+### Prérequis
 
-To install dependencies:
+Installer Bun via ce [lien](https://bun.com/docs/installation)
+
+### Installation des dépendances
 
 ```bash
 bun install
 ```
 
-## Usage
+## Utilisation
 
-At the default you will use the torrents file `torrents/BigBuckBunny_124_archive.torrent`, copy and paste the `.env.example` and rename it to `.env`. And change your torrent file if you want.
+### Configuration
 
-To run in development mode:
+1. Copiez le fichier `.env.example` et renommez-le en `.env`
+2. Modifiez le chemin vers votre fichier torrent si nécessaire
+3. Par défaut, le client utilise le fichier `torrents/BigBuckBunny_124_archive.torrent`
+
+### Commandes
 
 ```bash
+# Mode développement
 bun dev
-```
 
-To build for production:
-
-```bash
+# Build pour production
 bun run build
-```
 
-To run the built version:
-
-```bash
+# Exécuter la version buildée
 bun run prod
+
+# Formater le code
+bun format
+
+# Vérification lint
+bun lint
+
+# Vérification des types
+bun typecheck
+
+# Tests
+bun test
 ```
 
-## Project Structure
+## Architecture du projet
 
 ```
 bittorrent-client/
 ├── src/
-│   ├── index.ts                    # Main entry point
-│   ├── env.ts                      # Environment configuration
-│   ├── models/                     # Core domain models and business logic
-│   │   ├── peer/                   # Peer connection management
-│   │   │   ├── connection.ts       # TCP connection handling
-│   │   │   ├── message-handler.ts  # BitTorrent protocol message processing
-│   │   │   └── piece-manager.ts    # Piece download coordination
-│   │   ├── storage/                # File storage and download management
-│   │   │   ├── download-manager.ts # Download orchestration and progress tracking
-│   │   │   └── file-manager.ts     # File I/O operations
-│   │   ├── torrents/               # Torrent file processing
-│   │   │   └── metadata.ts         # Torrent metadata extraction and validation
-│   │   └── trackers/               # Tracker communication
-│   │       ├── http-tracker.ts     # HTTP tracker protocol implementation
-│   │       ├── udp-tracker.ts      # UDP tracker protocol implementation
-│   │       └── tracker-manager.ts  # Tracker selection and failover logic
-│   ├── types/                      # TypeScript type definitions
-│   │   └── index.ts                # Shared types and interfaces
-│   └── utils/                      # Utility functions and helpers
-│       ├── protocol/               # BitTorrent protocol utilities
-│       │   ├── bitfield.ts         # Bitfield operations for piece tracking
-│       │   ├── handcheck.ts        # Handshake protocol implementation
-│       │   ├── message.ts          # Protocol message parsing
-│       │   ├── message-builder.ts  # Protocol message construction
-│       │   └── peer-id.ts          # Peer ID generation
-│       ├── storage/                # Storage utilities
-│       │   ├── download.ts         # Download helper functions
-│       │   └── recovery.ts         # Download recovery and resume logic
-│       ├── system/                 # System utilities
-│       │   ├── constants.ts        # Application constants
-│       │   └── logging.ts          # Logging configuration and utilities
-│       ├── torrent/                # Torrent file utilities
-│       │   ├── bencode.ts          # Bencode encoder/decoder
-│       │   ├── hash.ts             # SHA-1 hashing for info_hash
-│       │   ├── torrent.ts          # Torrent file parsing
-│       │   └── validator.ts        # Torrent data validation
-│       └── tracker/                # Tracker utilities
-│           └── tracker.ts          # Common tracker functions
-├── tests/                          # Test files
-│   ├── bencode.test.ts            # Bencode parsing tests
-│   ├── decode-validation.test.ts  # Validation tests
-│   └── metadata.test.ts           # Metadata extraction tests
-├── torrents/                       # Sample torrent files
-├── dist/                           # Compiled JavaScript output
-├── package.json                    # Project dependencies
-├── tsconfig.json                   # TypeScript configuration
-└── .env                           # Environment variables
+│   ├── index.ts                    # Point d'entrée principal
+│   ├── config.ts                   # Configuration et constantes
+│   ├── env.ts                      # Variables d'environnement
+│   ├── models/                     # Modèles métier et logique principale
+│   │   ├── bittorrent.ts           # Orchestrateur principal du client
+│   │   ├── peer/                   # Gestion des connexions peers
+│   │   │   ├── peer-manager.ts     # Gestionnaire des connexions peers
+│   │   │   ├── peer-connection.ts  # Connexion TCP individuelle
+│   │   │   └── message-handler.ts  # Traitement des messages protocole
+│   │   ├── piece/                  # Gestion des pièces
+│   │   │   ├── piece-manager.ts    # Gestionnaire des pièces et blocs
+│   │   │   ├── request-manager.ts  # Gestionnaire des requêtes de blocs
+│   │   │   └── selection-strategy.ts # Stratégies de sélection des pièces
+│   │   ├── torrents/               # Traitement des fichiers torrents
+│   │   │   ├── metadata.ts         # Extraction des métadonnées
+│   │   │   └── metadata.interface.ts # Interfaces métadonnées
+│   │   └── trackers/               # Communication avec les trackers
+│   │       ├── tracker-manager.ts  # Gestionnaire multi-trackers
+│   │       ├── http/               # Protocole HTTP tracker
+│   │       │   ├── http-tracker.ts
+│   │       │   └── http-client.ts
+│   │       └── udp/                # Protocole UDP tracker
+│   │           ├── udp-tracker.ts
+│   │           └── udp-socket.ts
+│   ├── types/                      # Définitions TypeScript
+│   │   ├── *.type.ts               # Types spécialisés par domaine
+│   │   └── index.ts                # Exports centralisés
+│   └── utils/                      # Fonctions utilitaires
+│       ├── protocol/               # Utilitaires protocole BitTorrent
+│       │   ├── bitfield.ts         # Opérations sur les bitfields
+│       │   ├── handshake.ts        # Protocole de handshake
+│       │   ├── message-builder.ts  # Construction des messages
+│       │   ├── message-parser.ts   # Parsing des messages
+│       │   ├── peer-builder.ts     # Construction des peers
+│       │   └── peer-id.ts          # Génération des IDs peers
+│       ├── storage/                # Utilitaires de stockage
+│       │   ├── block-utils.ts      # Opérations sur les blocs
+│       │   ├── file-operations.ts  # Opérations fichiers
+│       │   ├── hash-verification.ts # Vérification des hashes
+│       │   ├── multifile-assembler.ts # Assemblage multi-fichiers
+│       │   └── piece-request-utils.ts # Utilitaires requêtes pièces
+│       ├── system/                 # Utilitaires système
+│       │   ├── logging.ts          # Système de logs
+│       │   └── stats.ts            # Statistiques téléchargement
+│       ├── torrent/                # Utilitaires torrents
+│       │   ├── bencode.ts          # Encodeur/décodeur Bencode
+│       │   ├── hash.ts             # Calculs de hash SHA-1
+│       │   ├── trackers.ts         # Parsing des trackers
+│       │   └── validator.ts        # Validation des torrents
+│       └── tracker/                # Utilitaires trackers
+│           ├── discovery.ts        # Découverte des peers
+│           ├── factory.ts          # Factory des trackers
+│           ├── http-protocol.ts    # Protocole HTTP
+│           ├── udp-protocol.ts     # Protocole UDP
+│           ├── peer.ts             # Utilitaires peers
+│           └── sort.ts             # Tri des trackers
+├── tests/                          # Tests unitaires
+├── torrents/                       # Fichiers torrents d'exemple
+└── downloads/                      # Dossier de téléchargement
 ```
 
-### Architecture Overview
+## Protocole BitTorrent - Guide complet
 
-The BitTorrent client follows a modular architecture with clear separation of concerns:
+### Vue d'ensemble
 
-#### Core Components
+Le protocole BitTorrent est un protocole peer-to-peer permettant le partage de fichiers de manière distribuée. Ce client implémente l'intégralité des spécifications du protocole BitTorrent v1.
 
-1. **Models Layer** (`src/models/`)
-   - Contains the main business logic and domain models
-   - Each subdirectory represents a major feature area (peers, storage, torrents, trackers)
-   - Implements the core BitTorrent protocol logic
+### 1. Structure d'un fichier Torrent
 
-2. **Utils Layer** (`src/utils/`)
-   - Provides reusable utility functions
-   - Handles low-level protocol operations
-   - Manages system interactions and logging
+Un fichier `.torrent` est encodé en **Bencode** et contient les métadonnées essentielles :
 
-3. **Types** (`src/types/`)
-   - Centralized TypeScript type definitions
-   - Ensures type safety across the application
+```
+{
+  "announce": "http://tracker.example.com:8080/announce",
+  "announce-list": [["http://tracker1.com"], ["http://tracker2.com"]],
+  "info": {
+    "name": "example.txt",
+    "piece length": 524288,
+    "pieces": "<hash SHA-1 de chaque pièce concatenés>",
+    "length": 1048576,  // Pour un fichier unique
+    "files": [          // Pour plusieurs fichiers
+      {"length": 524288, "path": ["dir", "file1.txt"]},
+      {"length": 524288, "path": ["dir", "file2.txt"]}
+    ]
+  }
+}
+```
 
-#### Key Features
+#### Champs importants :
+- **announce** : URL du tracker principal
+- **info** : Dictionnaire contenant les informations du fichier
+- **piece length** : Taille de chaque pièce (généralement 256KB-2MB)
+- **pieces** : Hash SHA-1 de chaque pièce (20 bytes par pièce)
 
-- **Multi-Tracker Support**: Handles both HTTP and UDP tracker protocols with automatic failover
-- **Peer Management**: Manages concurrent peer connections with message handling
-- **Piece Management**: Coordinates piece downloads with validation and recovery
-- **Storage Management**: Efficient file I/O with support for multi-file torrents
-- **Bencode Parser**: Complete implementation of the BitTorrent encoding format
-- **Resume Support**: Download recovery and resume capabilities
-- **Logging System**: Comprehensive logging with different log levels
+### 2. Encodage Bencode
 
-## Bencode Implementation
+Le Bencode est le format d'encodage utilisé par BitTorrent :
 
-This client includes a comprehensive Bencode parser and encoder implementation that handles the BitTorrent encoding format.
+#### Types de données :
+- **Entiers** : `i<nombre>e` (ex: `i42e` = 42)
+- **Chaînes** : `<longueur>:<chaîne>` (ex: `4:spam` = "spam")
+- **Listes** : `l<éléments>e` (ex: `l4:spam4:eggse` = ["spam", "eggs"])
+- **Dictionnaires** : `d<paires clé-valeur>e` (clés triées lexicographiquement)
 
-### Bencode Format Support
+### 3. Communication avec les Trackers
 
-The implementation supports all Bencode data types:
+#### 3.1 Protocole HTTP Tracker
 
-- **Integers**: Encoded as `i<integer>e` (e.g., `i42e` for 42)
-- **Strings**: Encoded as `<length>:<string>` (e.g., `4:spam` for "spam")
-- **Lists**: Encoded as `l<contents>e` (e.g., `l4:spam4:eggse` for ["spam", "eggs"])
-- **Dictionaries**: Encoded as `d<contents>e` with sorted keys (e.g., `d3:cow3:moo4:spam4:eggse`)
+**Requête announce HTTP :**
+```
+GET /announce?info_hash=<hash>&peer_id=<id>&port=6881&uploaded=0&downloaded=0&left=1048576&compact=1
+```
 
-### Key Functions
+**Paramètres :**
+- `info_hash` : Hash SHA-1 du dictionnaire "info" (URL-encoded)
+- `peer_id` : Identifiant unique du client (20 bytes)
+- `port` : Port d'écoute du client
+- `uploaded/downloaded/left` : Statistiques de téléchargement
+- `compact` : Format compact des peers (1 = activé)
+- `event` : Événement ("started", "stopped", "completed")
 
-#### `decode(data: Buffer | string): BencodeValue`
-Parses Bencode data into JavaScript objects. Handles both Buffer and string inputs.
+**Réponse du tracker :**
+```
+{
+  "interval": 1800,
+  "peers": "<6 bytes par peer: 4 IP + 2 port>",
+  "complete": 10,    // Nombre de seeders
+  "incomplete": 5    // Nombre de leechers
+}
+```
 
-#### `encode(value: BencodeValue | string): Buffer`
-Encodes JavaScript objects back to Bencode format. Automatically sorts dictionary keys as required by the BitTorrent specification.
+#### 3.2 Protocole UDP Tracker
 
-#### `decodeTorrent(data: Buffer | string): TorrentFile`
-Specialized function for parsing `.torrent` files with validation. Extracts all standard torrent metadata including:
-- Announce URLs and tracker lists
-- File information (single file or multi-file torrents)
-- Piece hashes and piece length
-- Creation date, creator, and comments
-- Private torrent flags
+Le protocole UDP est plus efficace avec 3 étapes :
 
-### Error Handling
+**1. Connect Request (16 bytes) :**
+```
+Offset  Size  Type     Description
+0       8     uint64   Protocol ID (0x41727101980)
+8       4     uint32   Action (0 = connect)
+12      4     uint32   Transaction ID
+```
 
-The parser includes comprehensive error handling for:
-- Malformed Bencode data
-- Invalid character sequences
-- Buffer boundary violations
-- Missing required torrent fields
+**2. Connect Response (16 bytes) :**
+```
+Offset  Size  Type     Description
+0       4     uint32   Action (0)
+4       4     uint32   Transaction ID
+8       8     uint64   Connection ID
+```
 
-All parsing functions validate input data and throw descriptive errors for debugging.
+**3. Announce Request (98 bytes) :**
+```
+Offset  Size  Type     Description
+0       8     uint64   Connection ID
+8       4     uint32   Action (1 = announce)
+12      4     uint32   Transaction ID
+16      20    bytes    Info hash
+36      20    bytes    Peer ID
+56      8     uint64   Downloaded
+64      8     uint64   Left
+72      8     uint64   Uploaded
+80      4     uint32   Event
+84      4     uint32   IP address
+88      4     uint32   Key
+92      4     int32    Num want
+96      2     uint16   Port
+```
 
-## Tracker Protocol Documentation
+### 4. Protocole Peer-to-Peer
 
-This client implements communication with both HTTP and UDP trackers as defined in the BitTorrent protocol.
+#### 4.1 Handshake
 
-### HTTP Tracker Protocol
+Le handshake établit la connexion entre deux peers :
 
-HTTP trackers use simple HTTP GET requests with URL-encoded parameters to communicate with peers.
+```
+<pstrlen><pstr><reserved><info_hash><peer_id>
 
-#### HTTP Announce Request Parameters
+- pstrlen: 1 byte = 19
+- pstr: 19 bytes = "BitTorrent protocol"
+- reserved: 8 bytes (flags d'extension)
+- info_hash: 20 bytes (hash SHA-1 du torrent)
+- peer_id: 20 bytes (identifiant du peer)
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `info_hash` | string | Yes | URL-encoded 20-byte SHA-1 hash of the torrent info dictionary |
-| `peer_id` | string | Yes | URL-encoded 20-byte peer ID |
-| `port` | number | Yes | Port the client is listening on (default: 6881) |
-| `uploaded` | number | Yes | Total bytes uploaded by the client |
-| `downloaded` | number | Yes | Total bytes downloaded by the client |
-| `left` | number | Yes | Number of bytes left to download |
-| `compact` | number | Yes | Set to 1 for compact peer format |
-| `event` | string | No | Event type: 'started', 'stopped', or 'completed' |
-| `numwant` | number | No | Number of peers desired (default: 50) |
+Total: 68 bytes
+```
 
-#### HTTP Response Format
+#### 4.2 Messages du protocole
 
-The tracker responds with a bencoded dictionary containing:
+Tous les messages suivent ce format :
+```
+<length><type><payload>
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `interval` | number | Seconds to wait before next announce |
-| `peers` | buffer/array | Compact format (6 bytes per peer) or list of peer dictionaries |
-| `complete` | number | Number of peers with complete file (seeders) |
-| `incomplete` | number | Number of peers downloading (leechers) |
-| `failure reason` | string | Error message if request failed |
+- length: 4 bytes (big-endian)
+- type: 1 byte
+- payload: données variables
+```
 
-### UDP Tracker Protocol
+#### Types de messages :
 
-UDP trackers use a binary protocol with structured message formats for efficient communication.
+**Keep-alive :**
+```
+<0000> (length = 0, pas de type ni payload)
+```
 
-#### UDP Connect Request
+**Choke (0) :**
+```
+<0001><0>
+```
 
-The connect request establishes a connection with the tracker.
+**Unchoke (1) :**
+```
+<0001><1>
+```
 
-| Offset | Size | Type | Description |
-|--------|------|------|-------------|
-| 0 | 8 | uint64 | Protocol ID (0x41727101980) |
-| 8 | 4 | uint32 | Action (0 = connect) |
-| 12 | 4 | uint32 | Transaction ID (random) |
+**Interested (2) :**
+```
+<0001><2>
+```
 
-**Total size: 16 bytes**
+**Not Interested (3) :**
+```
+<0001><3>
+```
 
-#### UDP Connect Response
+**Have (4) :**
+```
+<0005><4><piece index>
+- piece index: 4 bytes (index de la pièce possédée)
+```
 
-| Offset | Size | Type | Description |
-|--------|------|------|-------------|
-| 0 | 4 | uint32 | Action (0 = connect) |
-| 4 | 4 | uint32 | Transaction ID (must match request) |
-| 8 | 8 | uint64 | Connection ID (for subsequent requests) |
+**Bitfield (5) :**
+```
+<0001+X><5><bitfield>
+- bitfield: X bytes (1 bit par pièce, 1 = possédée)
+```
 
-**Total size: 16 bytes**
+**Request (6) :**
+```
+<0013><6><index><begin><length>
+- index: 4 bytes (index de la pièce)
+- begin: 4 bytes (offset dans la pièce)
+- length: 4 bytes (longueur demandée, max 16KB)
+```
 
-#### UDP Announce Request
+**Piece (7) :**
+```
+<0009+X><7><index><begin><block>
+- index: 4 bytes
+- begin: 4 bytes
+- block: X bytes (données de la pièce)
+```
 
-| Offset | Size | Type | Description |
-|--------|------|------|-------------|
-| 0 | 8 | uint64 | Connection ID (from connect response) |
-| 8 | 4 | uint32 | Action (1 = announce) |
-| 12 | 4 | uint32 | Transaction ID (random) |
-| 16 | 20 | bytes | Info hash (SHA-1 of torrent info) |
-| 36 | 20 | bytes | Peer ID |
-| 56 | 8 | uint64 | Downloaded bytes |
-| 64 | 8 | uint64 | Left bytes |
-| 72 | 8 | uint64 | Uploaded bytes |
-| 80 | 4 | uint32 | Event (0=none, 1=completed, 2=started, 3=stopped) |
-| 84 | 4 | uint32 | IP address (0 = use sender's IP) |
-| 88 | 4 | uint32 | Key (random) |
-| 92 | 4 | int32 | Num want (-1 = default) |
-| 96 | 2 | uint16 | Port |
+**Cancel (8) :**
+```
+<0013><8><index><begin><length>
+(même format que Request)
+```
 
-**Total size: 98 bytes**
+### 5. Algorithmes de téléchargement
 
-#### UDP Announce Response
+#### 5.1 Gestion des pièces
 
-| Offset | Size | Type | Description |
-|--------|------|------|-------------|
-| 0 | 4 | uint32 | Action (1 = announce) |
-| 4 | 4 | uint32 | Transaction ID (must match request) |
-| 8 | 4 | uint32 | Interval (seconds) |
-| 12 | 4 | uint32 | Leechers |
-| 16 | 4 | uint32 | Seeders |
-| 20+ | 6n | bytes | Peers (6 bytes each: 4 IP + 2 port) |
+1. **Validation des pièces** : Chaque pièce téléchargée est vérifiée avec son hash SHA-1
+2. **Découpage en blocs** : Les pièces sont découpées en blocs de 16KB maximum
+3. **Parallélisation** : Jusqu'à 32 requêtes simultanées par peer
 
-#### Tracker Event Values
+#### 5.2 Stratégies de sélection des pièces
 
-| Value | Event | Description |
-|-------|-------|-------------|
-| 0 | none | Regular announce |
-| 1 | completed | Download completed |
-| 2 | started | Download started |
-| 3 | stopped | Download stopped |
+**Sequential Selector :**
+- Télécharge les pièces dans l'ordre séquentiel
+- Optimal pour le streaming ou la visualisation progressive
 
-### Error Handling
+**Random Selector :**
+- Sélection aléatoire des pièces disponibles
+- Améliore la diversification du réseau
 
-Both protocols support error responses:
+**Peer-Optimized Selector :**
+- Priorise les pièces disponibles chez le plus de peers
+- Équilibre entre rareté et disponibilité
 
-- **HTTP**: Uses `failure reason` field in bencoded response
-- **UDP**: Uses action value 3 (error) with error message in payload
+#### 5.3 Algorithme de choking
 
-### Connection Management
+Le choking contrôle la bande passante :
 
-- **HTTP**: Stateless, each request is independent
-- **UDP**: Requires connection establishment, connection ID expires after inactivity
+1. **Interested/Not Interested** : Indique l'intérêt pour les pièces du peer
+2. **Choke/Unchoke** : Autorise ou bloque l'upload vers un peer
+3. **Optimistic Unchoke** : Unchoke périodique d'un peer aléatoire
+4. **Réciprocité** : Favorise les peers qui uploadent en retour
+
+### 6. Gestion des erreurs et timeouts
+
+#### Timeouts configurés :
+- **Connexion TCP** : 30 secondes
+- **Handshake** : 15 secondes
+- **Messages** : 30 secondes
+- **Requêtes de pièces** : 30 secondes
+
+#### Récupération d'erreurs :
+- Reconnexion automatique en cas de déconnexion
+- Retry des requêtes échouées
+- Basculement vers d'autres trackers
+
+### 7. Optimisations implémentées
+
+#### Réseau :
+- Pool de connexions réutilisables
+- Limitation du nombre de connexions simultanées
+- Détection et évitement des peers lents
+
+#### Stockage :
+- Écriture asynchrone des pièces
+- Vérification d'intégrité en arrière-plan
+- Support des torrents multi-fichiers
+
+#### Mémoire :
+- Bufferisation intelligente des pièces
+- Libération automatique de la mémoire
+- Limitation de la taille des caches
+
+## Structure du code
+
+### Models (Logique métier)
+
+- **BitTorrent** : Orchestrateur principal coordonnant tous les composants
+- **PeerManager** : Gestion du pool de connexions peers
+- **PieceManager** : Gestion des pièces, blocs et validation
+- **TrackerManager** : Communication multi-trackers avec failover
+
+### Utils (Fonctions utilitaires)
+
+- **Protocol** : Implémentation du protocole BitTorrent
+- **Storage** : Gestion des fichiers et du stockage
+- **Torrent** : Parsing et validation des fichiers torrents
+- **Tracker** : Communication avec les trackers
+
+### Types (Définitions TypeScript)
+
+Organisation modulaire des types avec suffixe `.type.ts` pour une meilleure lisibilité et maintenance.
+
+## Tests
+
+```bash
+# Exécuter tous les tests
+bun test
+
+# Tests avec coverage
+bun test --coverage
+
+# Tests spécifiques
+bun test bencode
+bun test metadata
+```
+
+### Tests implémentés :
+- **Bencode** : Encodage/décodage complet
+- **Metadata** : Extraction des métadonnées torrents
+- **Validation** : Validation des fichiers torrents
