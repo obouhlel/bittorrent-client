@@ -9,6 +9,7 @@ export class UDPSocket {
     private timeout: number
   ) {
     this.socket = dgram.createSocket('udp4');
+    this.socket.setMaxListeners(20);
   }
 
   sendRequest(buffer: Buffer): Promise<Buffer> {
