@@ -3,7 +3,7 @@ import type { TorrentMetadata } from '~/models/torrents/metadata';
 import { createPeerConnection } from '~/utils/protocol/peer-builder';
 import { buildHandshake } from '~/utils/protocol/message-builder';
 import { log } from '~/utils/system/logging';
-import { getPeerKey } from '~/utils/tracker/utils';
+import { getPeerKey } from '~/utils/tracker/peer';
 import { MessageHandler } from './message-handler';
 
 export class PeerManager {

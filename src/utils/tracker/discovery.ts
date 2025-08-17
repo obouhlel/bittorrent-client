@@ -4,7 +4,7 @@ import { HTTPTracker } from '~/models/trackers/http/http-tracker';
 import { UDPTracker } from '~/models/trackers/udp/udp-tracker';
 import type { TorrentMetadata } from '~/models/torrents/metadata';
 import { log } from '~/utils/system/logging';
-import { getPeerKey, deduplicatePeers } from './utils';
+import { getPeerKey, deduplicatePeers } from './peer';
 
 function createFullAnnounceParams(
   stats: TrackerStats,
