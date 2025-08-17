@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { PIECE_HASH_CHECK_ENABLED } from '~/utils/system/constants';
+import { PIECE_HASH_CHECK_ENABLED } from '~/config';
 import { log } from '~/utils/system/logging';
 
 export function verifyPieceHash(pieceData: Uint8Array, expectedHash: Uint8Array): boolean {

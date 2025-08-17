@@ -1,10 +1,5 @@
 import type { HandshakeMessage } from '~/types';
-import {
-  HANDSHAKE_SIZE,
-  PROTOCOL_NAME_LENGTH,
-  INFO_HASH_SIZE,
-  PEER_ID_SIZE,
-} from '~/utils/system/constants';
+import { HANDSHAKE_SIZE, PROTOCOL_NAME_LENGTH, INFO_HASH_SIZE, PEER_ID_SIZE } from '~/config';
 
 export function parseHandshake(data: Uint8Array): HandshakeMessage | null {
   if (data.length < HANDSHAKE_SIZE) {

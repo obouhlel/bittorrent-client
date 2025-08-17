@@ -1,5 +1,5 @@
 import type { Socket } from 'bun';
-import { TCP_TIMEOUT } from '~/utils/system/constants';
+import { TCP_TIMEOUT } from '~/config';
 import { log } from '~/utils/system/logging';
 
 export class PeerConnection {

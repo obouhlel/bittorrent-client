@@ -3,7 +3,7 @@ import type { TorrentMetadata } from '~/models/torrents/metadata';
 import type { HTTPTracker } from './http/http-tracker';
 import type { ITrackerManager } from './tracker-manager.interface';
 import { UDPTracker } from './udp/udp-tracker';
-import { NUMBER_TRACKERS_RUN, REFRESH_TRACKERS, TARGET_PEER_COUNT } from '~/utils/system/constants';
+import { NUMBER_TRACKERS_RUN, REFRESH_TRACKERS, TARGET_PEER_COUNT } from '~/config';
 import { createTrackerInfo, initTrackerInstance } from '~/utils/tracker/factory';
 import { announceToTrackers, discoverPeersProgressively } from '~/utils/tracker/discovery';
 import { sortTrackersByProtocol } from '~/utils/tracker/sort';

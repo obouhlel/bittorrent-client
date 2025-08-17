@@ -3,7 +3,7 @@ import type { AnnounceParams, AnnounceResponse } from '~/types/tracker';
 import crypto from 'node:crypto';
 import { URL } from 'node:url';
 import { getClientPeerId } from '~/utils/protocol/peer-id';
-import { UDP_TIMEOUT } from '~/utils/system/constants';
+import { UDP_TIMEOUT } from '~/config';
 import * as UDPProtocol from '~/utils/tracker/udp-protocol';
 import { UDPSocket } from './udp-socket';
 

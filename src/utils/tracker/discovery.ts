@@ -1,5 +1,5 @@
 import type { AnnounceParams, Peer, TrackerInfo, TrackerStats, TrackerEvent } from '~/types';
-import { DEFAULT_NUMWANT, DEFAULT_PORT, TARGET_PEER_COUNT } from '~/utils/system/constants';
+import { DEFAULT_NUMWANT, DEFAULT_PORT, TARGET_PEER_COUNT } from '~/config';
 import { HTTPTracker } from '~/models/trackers/http/http-tracker';
 import { UDPTracker } from '~/models/trackers/udp/udp-tracker';
 import type { TorrentMetadata } from '~/models/torrents/metadata';

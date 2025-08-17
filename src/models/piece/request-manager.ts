@@ -1,5 +1,5 @@
 import type { PendingRequest } from '~/types';
-import { PIECE_TIMEOUT } from '~/utils/system/constants';
+import { PIECE_TIMEOUT } from '~/config';
 import { log } from '~/utils/system/logging';
 
 export class RequestManager {

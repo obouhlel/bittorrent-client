@@ -1,4 +1,4 @@
-import { HTTP_TIMEOUT } from '~/utils/system/constants';
+import { HTTP_TIMEOUT } from '~/config';
 
 export class HTTPClient {
   private timeout: number = HTTP_TIMEOUT;

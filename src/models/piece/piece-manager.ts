@@ -1,6 +1,6 @@
 import type { PieceInfo, PieceBlock, PieceManagerStats } from '~/types';
 import { TorrentMetadata } from '~/models/torrents/metadata';
-import { DEFAULT_DOWNLOAD_PATH, MAX_PENDING_REQUESTS } from '~/utils/system/constants';
+import { DEFAULT_DOWNLOAD_PATH, MAX_PENDING_REQUESTS } from '~/config';
 import { log } from '~/utils/system/logging';
 import {
   createBlocksForPiece,

@@ -5,7 +5,7 @@ import { createPeerConnection } from '~/utils/protocol/peer-builder';
 import { buildHandshake } from '~/utils/protocol/message-builder';
 import { log } from '~/utils/system/logging';
 import { getPeerKey } from '~/utils/tracker/peer';
-import { HANDSHAKE_TIMEOUT, PEER_CONNECTION_TIMEOUT } from '~/utils/system/constants';
+import { HANDSHAKE_TIMEOUT, PEER_CONNECTION_TIMEOUT } from '~/config';
 import { MessageHandler } from './message-handler';
 
 export class PeerManager {

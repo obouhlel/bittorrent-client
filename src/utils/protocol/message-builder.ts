@@ -5,7 +5,7 @@ import {
   HANDSHAKE_SIZE,
   INFO_HASH_SIZE,
   RESERVED_BYTES_SIZE,
-} from '~/utils/system/constants';
+} from '~/config';
 
 export function buildHandshake(infoHash: Uint8Array, peerId: Uint8Array): Uint8Array {
   const message = new Uint8Array(HANDSHAKE_SIZE);

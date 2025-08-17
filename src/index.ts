@@ -1,6 +1,6 @@
 import '~/env';
 import { log } from '~/utils/system/logging';
-import { CLIENT_VERSION, DEFAULT_TORRENT_FILE_PATH } from '~/utils/system/constants';
+import { CLIENT_VERSION, DEFAULT_TORRENT_FILE_PATH } from '~/config';
 import { BitTorrent } from './models/bittorrent';
 
 // Application startup

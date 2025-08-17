@@ -1,5 +1,5 @@
 import type { PieceBlock } from '~/types';
-import { PIECE_BLOCK_SIZE } from '~/utils/system/constants';
+import { PIECE_BLOCK_SIZE } from '~/config';
 
 export function createBlocksForPiece(pieceIndex: number, pieceSize: number): PieceBlock[] {
   const blocks: PieceBlock[] = [];

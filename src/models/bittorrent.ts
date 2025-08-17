@@ -4,11 +4,7 @@ import { TrackerManager } from './trackers/tracker-manager';
 import { PeerManager } from './peer/peer-manager';
 import { PieceManager } from './piece/piece-manager';
 import { log } from '~/utils/system/logging';
-import {
-  MIN_CONNECTED_PEERS,
-  DEFAULT_DOWNLOAD_PATH,
-  DOWNLOAD_REFRESH_INTERVAL,
-} from '~/utils/system/constants';
+import { MIN_CONNECTED_PEERS, DEFAULT_DOWNLOAD_PATH, DOWNLOAD_REFRESH_INTERVAL } from '~/config';
 import { decodeTorrent } from '~/utils/torrent/bencode';
 import type { DownloadStats } from '~/utils/system/stats';
 

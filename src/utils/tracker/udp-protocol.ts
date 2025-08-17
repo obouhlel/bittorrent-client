@@ -10,7 +10,7 @@ import {
   UDP_PEER_SIZE,
   UDP_ANNOUNCE_RESPONSE_HEADER_SIZE,
   UDPEvent,
-} from '~/utils/system/constants';
+} from '~/config';
 
 export function buildConnectRequest(transactionId: number): Buffer {
   const buffer = Buffer.allocUnsafe(UDP_CONNECT_REQUEST_SIZE);
